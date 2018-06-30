@@ -48,59 +48,59 @@ EXPLODE_OFFSET = 10;
 $fn = 128;
 
 color("grey")
-dock_rim_with_buttons(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT, DOCK_BODY_DEPTH, DOCK_WALL_THICKNESS, CORNER_CURVE_DIAMETER, BUTTON_BOTTOM_WIDTH, BUTTON_BOTTOM_DISTANCE, NUT_HOLDER_WALL_THICKNESS, NUT_HOLDER_BASE_THICKNESS);
+dock_rim_with_buttons(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT, DOCK_BODY_DEPTH, DOCK_WALL_THICKNESS, BUTTON_BOTTOM_WIDTH, BUTTON_BOTTOM_DISTANCE, NUT_HOLDER_WALL_THICKNESS, NUT_HOLDER_BASE_THICKNESS);
 
 color("red")
 translate([0,0,(-DOCK_BODY_DEPTH+DOCK_BACK_THICKNESS)/2- EXPLODE_OFFSET])
-dock_back_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS, CORNER_CURVE_DIAMETER);
+dock_back_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
 
 color("red")
 translate([0,0,(+DOCK_BODY_DEPTH-DOCK_BACK_THICKNESS)/2 + EXPLODE_OFFSET ])
-dock_front_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS, CORNER_CURVE_DIAMETER);
+dock_front_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
 
-module dock_body(width, height, depth, corner_curve_diameter) {
-    x_translate = width-corner_curve_diameter;
-    y_translate = height-corner_curve_diameter;
+module dock_body(width, height, depth) {
+    x_translate = width-CORNER_CURVE_DIAMETER;
+    y_translate = height-CORNER_CURVE_DIAMETER;
     
     hull(){
         translate([-x_translate/2, -y_translate/2, 0])
-        cylinder(depth,corner_curve_diameter/2, corner_curve_diameter/2, true);    
+        cylinder(depth,CORNER_CURVE_DIAMETER/2, CORNER_CURVE_DIAMETER/2, true);    
         
         translate([-x_translate/2, y_translate/2, 0])
-        cylinder(depth,corner_curve_diameter/2, corner_curve_diameter/2, true);
+        cylinder(depth,CORNER_CURVE_DIAMETER/2, CORNER_CURVE_DIAMETER/2, true);
 
         translate([x_translate/2, y_translate/2, 0])
-        cylinder(depth,corner_curve_diameter/2, corner_curve_diameter/2, true);        
+        cylinder(depth,CORNER_CURVE_DIAMETER/2, CORNER_CURVE_DIAMETER/2, true);        
         
         translate([x_translate/2, -y_translate/2, 0])
-        cylinder(depth,corner_curve_diameter/2, corner_curve_diameter/2, true);        
+        cylinder(depth,CORNER_CURVE_DIAMETER/2, CORNER_CURVE_DIAMETER/2, true);        
     }
 }
 
-module dock_back_wall(width, height, depth, corner_curve_diameter){
-    x_translate = width-corner_curve_diameter;
-    y_translate = height-corner_curve_diameter;
+module dock_back_wall(width, height, depth){
+    x_translate = width-CORNER_CURVE_DIAMETER;
+    y_translate = height-CORNER_CURVE_DIAMETER;
         
     
    hull(){
         translate([-x_translate/2, -y_translate/2, 0])
-        cylinder(depth,corner_curve_diameter/2, corner_curve_diameter/2, true);    
+        cylinder(depth,CORNER_CURVE_DIAMETER/2, CORNER_CURVE_DIAMETER/2, true);    
         
         translate([-x_translate/2, y_translate/2, 0])
-        cylinder(depth,corner_curve_diameter/2, corner_curve_diameter/2, true);
+        cylinder(depth,CORNER_CURVE_DIAMETER/2, CORNER_CURVE_DIAMETER/2, true);
 
         translate([x_translate/2, y_translate/2, 0])
-        cylinder(depth,corner_curve_diameter/2, corner_curve_diameter/2, true);        
+        cylinder(depth,CORNER_CURVE_DIAMETER/2, CORNER_CURVE_DIAMETER/2, true);        
         
         translate([x_translate/2, -y_translate/2, 0])
-        cylinder(depth,corner_curve_diameter/2, corner_curve_diameter/2, true);        
+        cylinder(depth,CORNER_CURVE_DIAMETER/2, CORNER_CURVE_DIAMETER/2, true);        
     }    
 }
 
-module dock_front_wall(width, height, depth, corner_curve_diameter){
+module dock_front_wall(width, height, depth){
     intersection(){
         difference(){
-            dock_back_wall(width, height, depth, corner_curve_diameter);        
+            dock_back_wall(width, height, depth);        
             translate([(width-GOLDPIN_RASTER_EDGE_DISTANCE)/2,0,0])
             pin_raster_slot(GOLDPIN_RASTER_HEIGHT, GOLDPIN_RASTER_WIDTH, GOLDPIN_RASTER_DEPTH);        
         }    
@@ -109,20 +109,20 @@ module dock_front_wall(width, height, depth, corner_curve_diameter){
     //TODO: add shelve for the raster
 }
 
-module dock_rim(width, height, depth, wall_thickness, corner_curve_diameter) {
+module dock_rim(width, height, depth, wall_thickness) {
     
     curve_ratio = sqrt(pow(width-wall_thickness,2) + pow(height-wall_thickness,2)) / sqrt(pow(width,2) + pow(height,2));
     
-    scaled_curve = corner_curve_diameter * curve_ratio;
+    scaled_curve = CORNER_CURVE_DIAMETER * curve_ratio;
     
     difference(){
-        dock_body(width, height, depth, corner_curve_diameter);
+        dock_body(width, height, depth);
         dock_body(width-wall_thickness, height-wall_thickness, 2*depth, scaled_curve);
     };
     
     translate([0,0,DOCK_PROTECTOR_DEPTH/2])
     difference(){
-        dock_body(width, height, depth+DOCK_PROTECTOR_DEPTH, corner_curve_diameter);
+        dock_body(width, height, depth+DOCK_PROTECTOR_DEPTH);
         cube([width*2, height-DOCK_PROTECTOR_HEIGHT, depth*2], true);
     };
     
@@ -151,7 +151,7 @@ module button_row(button_bottom_width, button_bottom_distance){
 function nut_cylinder_height(single_nut_height, base_thickness) = 2*(single_nut_height+base_thickness);
 function nut_cylinder_radius(single_nut_width, nut_holder_wall_thickness) = single_nut_width + 2*nut_holder_wall_thickness;
 
-module dock_rim_with_buttons(width, height, depth, wall_thickness, corner_curve_diameter, button_body_width, button_bottom_distance, nut_holder_wall_thickness, nut_holder_base_thickness) {
+module dock_rim_with_buttons(width, height, depth, wall_thickness, button_body_width, button_bottom_distance, nut_holder_wall_thickness, nut_holder_base_thickness) {
 
     button_translation = 4;
     
@@ -164,7 +164,7 @@ module dock_rim_with_buttons(width, height, depth, wall_thickness, corner_curve_
 
     union(){
         difference(){
-            dock_rim(width, height, depth, wall_thickness, corner_curve_diameter);
+            dock_rim(width, height, depth, wall_thickness);
 
             // Placeholder for buttons
             translate([width/2,0,0])
