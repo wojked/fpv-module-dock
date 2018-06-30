@@ -13,8 +13,8 @@ DOCK_PROTECTOR_DEPTH = 8;
 NUT_HEIGHT = 5.6;
 NUT_WIDTH = 11.1;
 NUT_INSIDE_DIAMETER = 6.350;
-NUT_HOLDER_WALL_THICKNESS = 1;
-NUT_HOLDER_BASE_THICKNESS = 2;
+NUT_HOLDER_WALL_THICKNESS = 1.5;
+NUT_HOLDER_BASE_THICKNESS = 1.5;
 
 /* [BUTTONS] */
 NUMBER_OF_BUTTONS = 3;
@@ -234,7 +234,11 @@ module screw_port(wall_thickness, base_thickness){
     
     difference(){
         // Main holder
-        cylinder(cylinder_height,cylinder_radius/2, cylinder_radius/2, true);
+        union(){
+            cylinder(cylinder_height,cylinder_radius/2, cylinder_radius/2, true);
+            translate([0,cylinder_radius/4,0])
+            cube([cylinder_radius,cylinder_radius/2,cylinder_height],true);
+        }
         
         // Extra slot for sliding in the nut
         translate([0,0,NUT_HEIGHT/2])    
