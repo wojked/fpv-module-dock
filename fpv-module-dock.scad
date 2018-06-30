@@ -1,13 +1,13 @@
 /* [DOCK_BODY] */
-DOCK_BODY_DEPTH = 16;
+DOCK_BODY_DEPTH = 14;
 DOCK_BODY_HEIGHT = 40;
-DOCK_BODY_WIDTH = 50;
+DOCK_BODY_WIDTH = 55;
 
 DOCK_BACK_THICKNESS = 1;
 DOCK_WALL_THICKNESS = 2;
 
 DOCK_PROTECTOR_HEIGHT = 6;
-DOCK_PROTECTOR_DEPTH = 12;
+DOCK_PROTECTOR_DEPTH = 8;
 
 /* [PHOTO SCREW PORT] */
 NUT_HEIGHT = 5.6;
@@ -25,13 +25,18 @@ BUTTON_BOTTOM_HEIGHT = 6;
 BUTTON_BOTTOM_DISTANCE = 2;
 
 /* [GOLDPIN SIZE] */
-GOLDPIN_RASTER_EDGE_DISTANCE = 10;
+GOLDPIN_RASTER_EDGE_DISTANCE = 15;
 GOLDPIN_RASTER_HEIGHT = 2.48;
 GOLDPIN_RASTER_WIDTH = 24.75;
 GOLDPIN_RASTER_DEPTH = 7;
 GOLDPIN_RASTER_INTERPIN_DISTANCE = 3.14;
 GOLDPIN_THICKNESS = 0.63;
 
+/* [MINIJACK PORT SIZE] */
+MINIJACK_PORT_RADIUS = 7.2;
+
+/* [DC PORT SIZE] */
+DC_PORT_RADIUS = 7.2;  //11.5 body mounted
 
 /* [MISC] */
 CORNER_CURVE_DIAMETER = 10;
@@ -115,9 +120,9 @@ module dock_rim(width, height, depth, wall_thickness, corner_curve_diameter) {
         dock_body(width-wall_thickness, height-wall_thickness, 2*depth, scaled_curve);
     };
     
-    translate([0,0,DOCK_PROTECTOR_HEIGHT/2])
+    translate([0,0,DOCK_PROTECTOR_DEPTH/2])
     difference(){
-        dock_body(width, height, depth+DOCK_PROTECTOR_HEIGHT, corner_curve_diameter);
+        dock_body(width, height, depth+DOCK_PROTECTOR_DEPTH, corner_curve_diameter);
         cube([width*2, height-DOCK_PROTECTOR_HEIGHT, depth*2], true);
     };
     
@@ -153,25 +158,39 @@ module dock_rim_with_buttons(width, height, depth, wall_thickness, corner_curve_
     cylinder_radius = nut_cylinder_radius(NUT_WIDTH, nut_holder_wall_thickness); 
     cylinder_height = nut_cylinder_height(NUT_HEIGHT, nut_holder_base_thickness); 
 
+    edge_distance = width/3;
+
     echo(cylinder_height);
 
     union(){
         difference(){
             dock_rim(width, height, depth, wall_thickness, corner_curve_diameter);
+
+            // Placeholder for buttons
             translate([width/2,0,0])
             button_row(button_body_width, button_bottom_distance);
             
+            // Placeholder for the photo nut            
             translate([0,-height/2,0])        
             rotate([90,0,0])
-            //Placeholder for the photo nut
             cylinder(height,cylinder_radius/2, cylinder_radius/2, true);            
+            
+            // Placeholder for mini jack
+            translate([-width/2,(height-MINIJACK_PORT_RADIUS-edge_distance)/2,0])            
+            rotate([0,90,0])            
+            cylinder(height,(MINIJACK_PORT_RADIUS+TOLERANCE)/2, (MINIJACK_PORT_RADIUS+TOLERANCE)/2, true);                            
+            // Placeholder for DC
+            translate([-width/2,-(height-DC_PORT_RADIUS-edge_distance)/2,0])            
+            rotate([0,90,0])            
+            cylinder(height,(DC_PORT_RADIUS+2*TOLERANCE)/2, (DC_PORT_RADIUS/2+2*TOLERANCE), true);                               
         }
     
         translate([0,-height/2+cylinder_height/2,0])
         rotate([-90,0,0])
         screw_port(nut_holder_wall_thickness, nut_holder_base_thickness);    
+        
+        //TODO: add shelves for the bottons        
     }        
-    //TODO: add shelves for the bottons
 }
 
 module pin_raster_slot(width, height, depth, interpin_distance, pin_thickness){
