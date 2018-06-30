@@ -55,14 +55,14 @@ $fn = 128;
 color("grey")
 dock_rim_with_buttons(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT, DOCK_BODY_DEPTH, DOCK_WALL_THICKNESS, BUTTON_BOTTOM_WIDTH, BUTTON_BOTTOM_DISTANCE, NUT_HOLDER_WALL_THICKNESS, NUT_HOLDER_BASE_THICKNESS);
 
-color("red")
-translate([0,0,(-DOCK_BODY_DEPTH+DOCK_BACK_THICKNESS)/2- EXPLODE_OFFSET])
-dock_back_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
-
-color("red")
-translate([0,0,(+DOCK_BODY_DEPTH-DOCK_BACK_THICKNESS)/2 + EXPLODE_OFFSET ])
-dock_front_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
-
+//color("red")
+//translate([0,0,(-DOCK_BODY_DEPTH+DOCK_BACK_THICKNESS)/2- EXPLODE_OFFSET])
+//dock_back_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
+//
+//color("red")
+//translate([0,0,(+DOCK_BODY_DEPTH-DOCK_BACK_THICKNESS)/2 + EXPLODE_OFFSET ])
+//dock_front_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
+//
 
 
 module dock_body(width, height, depth) {
@@ -116,8 +116,14 @@ module dock_front_wall(width, height, depth){
     //TODO: add shelve for the raster
 }
 
+module screw_slot(height, diameter) {
+    difference(){
+        cube([2*diameter,2*diameter, height], true);              
+        cylinder(height*2,SCREW_DIAMETER/2, SCREW_DIAMETER/2, true);  
+    }
+}
+
 module dock_rim(width, height, depth, wall_thickness) {
-    
     curve_ratio = sqrt(pow(width-wall_thickness,2) + pow(height-wall_thickness,2)) / sqrt(pow(width,2) + pow(height,2));
     
     scaled_curve = CORNER_CURVE_DIAMETER * curve_ratio;
@@ -132,9 +138,7 @@ module dock_rim(width, height, depth, wall_thickness) {
         dock_body(width, height, depth+DOCK_PROTECTOR_DEPTH);
         cube([width*2, height-DOCK_PROTECTOR_HEIGHT, depth*2], true);
     };
-    
-    //TODO: add slots for the screws
-    
+        
     //TODO: add grill for better air flow
 }
 
@@ -197,6 +201,30 @@ module dock_rim_with_buttons(width, height, depth, wall_thickness, button_body_w
         screw_port(nut_holder_wall_thickness, nut_holder_base_thickness);    
         
         //TODO: add shelves for the bottons        
+        
+        // Construction screws
+        //DOING NOW! SCREWS
+        SCREW_WALL_DISTANCE = 0;
+        slot_diameter = SCREW_DIAMETER+0.5;
+
+        y_offset = max(wall_thickness, DOCK_PROTECTOR_HEIGHT);
+
+        x_translation = (width-wall_thickness)/2 - slot_diameter - SCREW_WALL_DISTANCE;    
+        y_translation = (height-y_offset)/2 - slot_diameter - SCREW_WALL_DISTANCE;
+
+        screw_slot(depth, slot_diameter);
+
+        translate([x_translation,y_translation,0])    
+        screw_slot(depth, slot_diameter);
+        
+        translate([-x_translation,y_translation,0])    
+        screw_slot(depth, slot_diameter);
+        
+        translate([-x_translation,-y_translation,0])    
+        screw_slot(depth, slot_diameter);     
+        
+        translate([x_translation,-y_translation,0])    
+        screw_slot(depth, slot_diameter);         
     }        
 }
 
