@@ -205,13 +205,14 @@ module dock_rim_with_buttons(width, height, depth, wall_thickness, button_body_w
         // Construction screws
         //DOING NOW! SCREWS
         SCREW_WALL_DISTANCE = 0;
-        slot_diameter = SCREW_DIAMETER+0.5;
+        slot_diameter = SCREW_DIAMETER/2 + 1;
 
         y_offset = max(wall_thickness, DOCK_PROTECTOR_HEIGHT);
 
         x_translation = (width-wall_thickness)/2 - slot_diameter - SCREW_WALL_DISTANCE;    
         y_translation = (height-y_offset)/2 - slot_diameter - SCREW_WALL_DISTANCE;
 
+        translate([x_translation/3,0,0])    
         screw_slot(depth, slot_diameter);
 
         translate([x_translation,y_translation,0])    
