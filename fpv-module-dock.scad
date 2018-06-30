@@ -1,10 +1,10 @@
 /* [DOCK_BODY] */
 DOCK_BODY_DEPTH = 14;
 DOCK_BODY_HEIGHT = 40;
-DOCK_BODY_WIDTH = 55;
+DOCK_BODY_WIDTH = 60;
 
-DOCK_BACK_THICKNESS = 1;
-DOCK_WALL_THICKNESS = 2;
+DOCK_BACK_THICKNESS = 2;
+DOCK_WALL_THICKNESS = 3;
 
 DOCK_PROTECTOR_HEIGHT = 6;
 DOCK_PROTECTOR_DEPTH = 8;
@@ -13,8 +13,8 @@ DOCK_PROTECTOR_DEPTH = 8;
 NUT_HEIGHT = 5.6;
 NUT_WIDTH = 11.1;
 NUT_INSIDE_DIAMETER = 6.350;
-NUT_HOLDER_WALL_THICKNESS = 1;
-NUT_HOLDER_BASE_THICKNESS = 2;
+NUT_HOLDER_WALL_THICKNESS = 1.5;
+NUT_HOLDER_BASE_THICKNESS = 1.5;
 
 /* [BUTTONS] */
 NUMBER_OF_BUTTONS = 3;
@@ -62,6 +62,8 @@ dock_back_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
 color("red")
 translate([0,0,(+DOCK_BODY_DEPTH-DOCK_BACK_THICKNESS)/2 + EXPLODE_OFFSET ])
 dock_front_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
+
+
 
 module dock_body(width, height, depth) {
     x_translate = width-CORNER_CURVE_DIAMETER;
@@ -239,7 +241,11 @@ module screw_port(wall_thickness, base_thickness){
     
     difference(){
         // Main holder
-        cylinder(cylinder_height,cylinder_radius/2, cylinder_radius/2, true);
+        union(){
+            cylinder(cylinder_height,cylinder_radius/2, cylinder_radius/2, true);
+            translate([0,cylinder_radius/4,0])
+            cube([cylinder_radius,cylinder_radius/2,cylinder_height],true);
+        }
         
         // Extra slot for sliding in the nut
         translate([0,0,NUT_HEIGHT/2])    
