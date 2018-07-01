@@ -6,8 +6,8 @@ DOCK_BODY_WIDTH = 60;
 DOCK_BACK_THICKNESS = 2;
 DOCK_WALL_THICKNESS = 3;
 
-DOCK_PROTECTOR_HEIGHT = 6;
-DOCK_PROTECTOR_DEPTH = 8;
+DOCK_PROTECTOR_HEIGHT = 3;
+DOCK_PROTECTOR_DEPTH = 4;
 
 /* [PHOTO SCREW PORT] */
 NUT_HEIGHT = 5.6;
@@ -24,10 +24,15 @@ BUTTON_BOTTOM_WIDTH = 6;
 BUTTON_BOTTOM_HEIGHT = 6;
 BUTTON_BOTTOM_DISTANCE = 2;
 
+/* [GOLDPIN POSITION */
+LID_OFFSET = 4;
+
 /* [GOLDPIN SIZE] */
 RASTER_INTERPIN_DISTANCE = 2.54; // specs
 RASTER_SLOT_HEIGHT = 8.45; // measured
 RASTER_TOTAL_HEIGHT = 11.41; // measured
+RASTER_PIN_WIDTH = 0.64 + 0.1;  //specs + 0.1
+RASTER_PIN_DEPTH = 0.40 + 0.1;  //specs + 0.1
 
 
 GOLDPIN_RASTER_EDGE_DISTANCE = 25;
@@ -60,22 +65,22 @@ SCREW_HEAD_THICKNESS = 2.4; // M3 screw
 /* [MISC] */
 CORNER_CURVE_DIAMETER = 10;
 TOLERANCE = 0.05;
-EXPLODE_OFFSET = 20;  
+EXPLODE_OFFSET = 0;  
 
 
 /* [HIDDEN] */
 $fn = 128;
 
-color("grey")
-dock_rim_with_buttons(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT, DOCK_BODY_DEPTH, DOCK_WALL_THICKNESS, BUTTON_BOTTOM_WIDTH, BUTTON_BOTTOM_DISTANCE, NUT_HOLDER_WALL_THICKNESS, NUT_HOLDER_BASE_THICKNESS);
+//color("grey")
+//dock_rim_with_buttons(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT, DOCK_BODY_DEPTH, DOCK_WALL_THICKNESS, BUTTON_BOTTOM_WIDTH, BUTTON_BOTTOM_DISTANCE, NUT_HOLDER_WALL_THICKNESS, NUT_HOLDER_BASE_THICKNESS);
 
 //color("red")
 //translate([0,0,(-DOCK_BODY_DEPTH+DOCK_BACK_THICKNESS)/2- EXPLODE_OFFSET])
 //dock_back_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
 //
-//color("red")
-//translate([0,0,(+DOCK_BODY_DEPTH-DOCK_BACK_THICKNESS)/2 + EXPLODE_OFFSET ])
-//dock_front_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
+color("red")
+translate([0,0,(+DOCK_BODY_DEPTH+DOCK_BACK_THICKNESS)/2 + EXPLODE_OFFSET ])
+dock_front_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
 
 
 
@@ -119,15 +124,17 @@ module dock_back_wall(width, height, depth){
 }
 
 module dock_front_wall(width, height, depth){
+    
     intersection(){
         difference(){
             dock_back_wall(width, height, depth);        
-            translate([(width-GOLDPIN_RASTER_EDGE_DISTANCE)/2,0,0])
-            pin_raster_slot(GOLDPIN_RASTER_HEIGHT, GOLDPIN_RASTER_WIDTH, GOLDPIN_RASTER_DEPTH);        
+
+            translate([(width-GOLDPIN_RASTER_EDGE_DISTANCE)/2,0,0])            
+            rotate([0,0,90])
+            raster_n_pins(9);            
         }    
         cube([width,height-DOCK_PROTECTOR_HEIGHT-TOLERANCE,10],true);
-    }
-    //TODO: add shelve for the raster
+    }     
 }
 
 module screw_slot(height, diameter) {
@@ -176,11 +183,10 @@ module button_row(button_bottom_width, button_bottom_distance){
 module goldpin_shelf(){    
     pins = 9;
     
-    translate([-(pins-1)/2*RASTER_INTERPIN_DISTANCE,0,0])
-    for(n=[0:1:pins-1]){
-        translate([n*RASTER_INTERPIN_DISTANCE,0,0])
-        raster_pin();
-    }
+    raster_z_offset = (DOCK_BODY_DEPTH-RASTER_SLOT_HEIGHT+DOCK_BACK_THICKNESS+LID_OFFSET)/2;
+    
+    translate([0,0,raster_z_offset])
+    raster_n_pins(pins);
 }
 
 function nut_cylinder_height(single_nut_height, base_thickness) = 2*(single_nut_height+base_thickness);
@@ -258,22 +264,31 @@ module dock_rim_with_buttons(width, height, depth, wall_thickness, button_body_w
     }        
 }
 
-module pin_raster_slot(width, height, depth, interpin_distance, pin_thickness){
-    cube([width, height, depth], true);
+module raster_single_pin(){
+    slot_height = RASTER_SLOT_HEIGHT;
+    slot_width = RASTER_INTERPIN_DISTANCE+TOLERANCE;  //specs
+    slot_depth = RASTER_INTERPIN_DISTANCE+TOLERANCE;  //specs
+        
+    pin_width = RASTER_PIN_WIDTH;
+    pin_depth = RASTER_PIN_DEPTH;
+    pin_height = RASTER_TOTAL_HEIGHT - RASTER_SLOT_HEIGHT;
+
+//    translate([0,0,RASTER_SLOT_HEIGHT/2])    
+    cube([slot_width, slot_depth, RASTER_SLOT_HEIGHT], true);
+    translate([0,0,-RASTER_SLOT_HEIGHT/2-pin_height/2])
+    cube([pin_width, pin_depth, pin_height], true);    
 }
 
-module raster_pin(inter_pin_distance){
-    slot_height = RASTER_SLOT_HEIGHT;
-    slot_width = 2.54;  //specs
-    slot_depth = 2.50;  //specs
-        
-    pin_width = 0.64 + 0.1;  //specs + 0.1
-    pin_depth = 0.40 + 0.1;  //specs + 0.1
-    pin_height = RASTER_TOTAL_HEIGHT - RASTER_SLOT_HEIGHT;
+module raster_n_pins(pins){
+    initial_offset = (pins-1)*RASTER_INTERPIN_DISTANCE;
     
-    cube([slot_width, slot_depth, slot_height], true);
-    translate([0,0,(-slot_height-pin_height)/2])
-    cube([pin_width, pin_depth, pin_height], true);    
+    translate([-initial_offset/2,0,0])    
+    union(){            
+        for(n=[0:1:pins-1]){
+            translate([n*RASTER_INTERPIN_DISTANCE,0,0])
+            raster_single_pin();
+        }
+    }
 }
 
 function edge_length(size) = size*0.5774;
