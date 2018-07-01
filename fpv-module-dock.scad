@@ -25,15 +25,16 @@ BUTTON_BOTTOM_HEIGHT = 6;
 BUTTON_BOTTOM_DISTANCE = 2;
 
 /* [GOLDPIN POSITION */
-LID_OFFSET = 4;
+LID_OFFSET = 1;
 
 /* [GOLDPIN SIZE] */
 RASTER_INTERPIN_DISTANCE = 2.54; // specs
 RASTER_SLOT_HEIGHT = 8.45; // measured
 RASTER_TOTAL_HEIGHT = 11.41; // measured
-RASTER_PIN_WIDTH = 0.64 + 0.1;  //specs + 0.1
-RASTER_PIN_DEPTH = 0.40 + 0.1;  //specs + 0.1
+RASTER_PIN_WIDTH = 0.64 + 0.3;  //specs + 0.3
+RASTER_PIN_DEPTH = 0.40 + 0.3;  //specs + 0.3
 
+RASTER_SHELF_HEIGHT = 7.0;
 
 GOLDPIN_RASTER_EDGE_DISTANCE = 25;
 GOLDPIN_RASTER_HEIGHT = 2.5;
@@ -66,25 +67,23 @@ SCREW_WALL_DISTANCE = 0;
 /* [MISC] */
 CORNER_CURVE_DIAMETER = 10;
 TOLERANCE = 0.05;
-EXPLODE_OFFSET = 20;  
+EXPLODE_OFFSET = 0;  
 
 DELTA = 0.001; // used for non-perfect diffs
 
 /* [HIDDEN] */
 $fn = 128;
 
-//color("grey")
-//dock_rim_with_buttons(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT, DOCK_BODY_DEPTH, DOCK_WALL_THICKNESS, BUTTON_BOTTOM_WIDTH, BUTTON_BOTTOM_DISTANCE, NUT_HOLDER_WALL_THICKNESS, NUT_HOLDER_BASE_THICKNESS);
-//
-//color("red")
-//translate([0,0,(-DOCK_BODY_DEPTH+DOCK_BACK_THICKNESS)/2- EXPLODE_OFFSET])
-//dock_back_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
-//
-//color("red")
-//translate([0,0,(+DOCK_BODY_DEPTH+DOCK_BACK_THICKNESS)/2 + EXPLODE_OFFSET ])
-//dock_front_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
+color("grey")
+dock_rim_with_buttons(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT, DOCK_BODY_DEPTH, DOCK_WALL_THICKNESS, BUTTON_BOTTOM_WIDTH, BUTTON_BOTTOM_DISTANCE, NUT_HOLDER_WALL_THICKNESS, NUT_HOLDER_BASE_THICKNESS);
 
-goldpin_shelf();
+color("red")
+translate([0,0,(-DOCK_BODY_DEPTH+DOCK_BACK_THICKNESS)/2- EXPLODE_OFFSET])
+dock_back_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
+
+color("red")
+translate([0,0,(+DOCK_BODY_DEPTH+DOCK_BACK_THICKNESS)/2 + EXPLODE_OFFSET ])
+dock_front_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
 
 module dock_body(width, height, depth) {
     x_translate = width-CORNER_CURVE_DIAMETER;
@@ -188,7 +187,7 @@ module goldpin_shelf(){
     base_height = 2.0;
     
     shelf_thickness = 2;
-    shelf_height = 8;
+    shelf_height = RASTER_SHELF_HEIGHT;
    
     height = RASTER_INTERPIN_DISTANCE + 2*shelf_thickness;
     width = pins*RASTER_INTERPIN_DISTANCE + 2*shelf_thickness;    
@@ -269,7 +268,7 @@ module dock_rim_with_buttons(width, height, depth, wall_thickness, button_body_w
         
         
         // Fix shelf distance
-        translate([(width-GOLDPIN_RASTER_EDGE_DISTANCE)/2,0,0])
+        translate([(width-GOLDPIN_RASTER_EDGE_DISTANCE)/2,0,RASTER_SHELF_HEIGHT/2 + DOCK_BACK_THICKNESS/2 + LID_OFFSET/2])
         rotate([0,0,90])
         goldpin_shelf();
     }        
@@ -280,8 +279,8 @@ module raster_single_pin(){
     slot_width = RASTER_INTERPIN_DISTANCE + DELTA;  //specs
     slot_depth = RASTER_INTERPIN_DISTANCE + DELTA;  //specs
         
-    pin_width = RASTER_PIN_WIDTH;
-    pin_depth = RASTER_PIN_DEPTH;
+    pin_width = RASTER_PIN_WIDTH + TOLERANCE;
+    pin_depth = RASTER_PIN_WIDTH + TOLERANCE; // using wider width
     pin_height = RASTER_TOTAL_HEIGHT - RASTER_SLOT_HEIGHT;
 
     union(){
