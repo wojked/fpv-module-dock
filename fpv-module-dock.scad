@@ -26,7 +26,7 @@ BUTTON_BOTTOM_HEIGHT = 6;
 BUTTON_BOTTOM_DISTANCE = 2;
 
 /* [GOLDPIN POSITION] */
-LID_OFFSET = 2;
+LID_OFFSET = 2.5;     // To be 2.27, safer to set 2.5
 GOLDPIN_RASTER_EDGE_DISTANCE = 25;
 
 /* [GOLDPIN SIZE] */
@@ -35,7 +35,7 @@ RASTER_SLOT_HEIGHT = 8.45; // measured
 RASTER_TOTAL_HEIGHT = 11.41; // measured
 RASTER_PIN_WIDTH = 0.64 + 0.3;  //specs + 0.3
 RASTER_PIN_DEPTH = 0.40 + 0.3;  //specs + 0.3
-GOLDPIN_SHELF_BASE = 1.2;
+GOLDPIN_SHELF_BASE = 1.0;
 GOLDPIN_SHELF_WALL_THICKNESS = 1.5;
 
 GOLDPIN_SHELF_MOUNT = 2;
@@ -173,22 +173,27 @@ module button_row(button_bottom_width, button_bottom_distance){
 
 module goldpin_shelf(){    
     pins = 9;
-    base_height = GOLDPIN_SHELF_BASE;
     
     shelf_thickness = GOLDPIN_SHELF_WALL_THICKNESS;
-    shelf_height = RASTER_SLOT_HEIGHT - LID_OFFSET - DOCK_WALL_THICKNESS + base_height;
+    shelf_height = RASTER_SLOT_HEIGHT - LID_OFFSET - DOCK_BACK_THICKNESS + GOLDPIN_SHELF_BASE;
 
     echo("**");    
     echo(shelf_height);
    
     height = RASTER_INTERPIN_DISTANCE + 2*shelf_thickness;
-    width = pins*RASTER_INTERPIN_DISTANCE + 2*shelf_thickness;    
-    
+    width = pins*RASTER_INTERPIN_DISTANCE;    
+
     difference() {
-        translate([0,0,-shelf_height/2])        
-        cube([width,height,shelf_height],true);        
-        raster_n_pins(pins);    
-    };
+        translate([0,0,(-RASTER_SLOT_HEIGHT+shelf_height)/2 - GOLDPIN_SHELF_BASE])        
+        cube([width,height,shelf_height],true);  
+        color("red")
+        raster_n_pins(pins);        
+    };    
+    
+//    translate([0,0,(-RASTER_SLOT_HEIGHT+shelf_height)/2 - GOLDPIN_SHELF_BASE])        
+//    cube([width,height,shelf_height],true);  
+//    color("red")
+//    raster_n_pins(pins);        
 }
 
 function nut_cylinder_height(single_nut_height, base_thickness) = 2*(single_nut_height+base_thickness);
@@ -259,8 +264,9 @@ module dock_rim_with_buttons(width, height, depth, wall_thickness, button_body_w
         screw_slot(depth, slot_diameter);         
         
         // Shelf
-        translate([(width-GOLDPIN_RASTER_EDGE_DISTANCE)/2,0, DOCK_BODY_DEPTH/2])
+        translate([(width-GOLDPIN_RASTER_EDGE_DISTANCE)/2,0, DOCK_BODY_DEPTH/2 - RASTER_SLOT_HEIGHT/2 + LID_OFFSET + DOCK_BACK_THICKNESS])
         rotate([0,0,90])
+        
         goldpin_shelf();
         
         // Shelf mount 1
