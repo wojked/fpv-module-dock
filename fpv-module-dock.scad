@@ -6,7 +6,7 @@ DOCK_BODY_WIDTH = 60;
 DOCK_BACK_THICKNESS = 2;
 DOCK_WALL_THICKNESS = 3;
 
-//Proterctor should be a part of the front cover
+//Protector should be a part of the front cover - it will be easier to print per module
 DOCK_PROTECTOR_HEIGHT = 0;
 DOCK_PROTECTOR_DEPTH = 0;
 
