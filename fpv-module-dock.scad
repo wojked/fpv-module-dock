@@ -205,7 +205,7 @@ module button() {
 }
 
 module cylindric_button() {
-    cylinder(DOCK_WALL_THICKNESS*2, BUTTON_CYLINDER_DIAMETER, BUTTON_CYLINDER_DIAMETER, true);        
+    cylinder(DOCK_WALL_THICKNESS*2, BUTTON_CYLINDER_DIAMETER/2, BUTTON_CYLINDER_DIAMETER/2, true);        
 }
 
 module button_rail() {
@@ -307,16 +307,14 @@ module dock_rim_with_buttons(width, height, depth, wall_thickness, button_body_w
         }
     
         translate([0,-height/2+cylinder_height/2,0])
-        rotate([90,0,0])
+        rotate([-90,180,0])
         screw_port(nut_holder_wall_thickness, nut_holder_base_thickness);    
         
-        //TODO: add shelves for the bottons       
+        // TODO: Button rail is not a good idea, redesign a slide-in solution with a cover
         translate([width/2,0,0])
         button_rail_row();        
         
         // Construction screws
-        //DOING NOW! SCREWS
-        
         translate([special_x_translation,0,0])    
         screw_slot(depth, slot_diameter);
 
@@ -405,6 +403,7 @@ module photo_nut_insert(nut_height, nut_width, multiplier) {
     }
 }
 
+// Photo screw port
 module screw_port(wall_thickness, base_thickness){
     cylinder_height = nut_cylinder_height(NUT_HEIGHT, base_thickness);    
     cylinder_radius = NUT_WIDTH + 2*wall_thickness;
