@@ -24,6 +24,12 @@ BUTTON_TOP_HEIGHT = 4;
 BUTTON_BOTTOM_WIDTH = 6;
 BUTTON_BOTTOM_HEIGHT = 6;
 BUTTON_BOTTOM_DISTANCE = 2;
+BUTTON_CYLINDER_DIAMETER = 3;
+
+BUTTON_RAIL_DEPTH = 7;
+BUTTON_RAIL_WIDTH = 3;
+BUTTON_RAIL_HEIGHT = 2;
+BUTTON_RAIL_OFFSET = 4;
 
 /* [GOLDPIN POSITION] */
 LID_OFFSET = 2.5;     // To be 2.27, safer to set 2.5
@@ -67,14 +73,14 @@ $fn = 128;
 //color("grey")
 dock_rim_with_buttons(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT, DOCK_BODY_DEPTH, DOCK_WALL_THICKNESS, BUTTON_BOTTOM_WIDTH, BUTTON_BOTTOM_DISTANCE, NUT_HOLDER_WALL_THICKNESS, NUT_HOLDER_BASE_THICKNESS);
 
-color("red")
-translate([0,0,(-DOCK_BODY_DEPTH-DOCK_BACK_THICKNESS)/2- EXPLODE_OFFSET])
-rotate([180,0,0])
-dock_back_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
-
-color("red")
-translate([0,0,(+DOCK_BODY_DEPTH+DOCK_BACK_THICKNESS)/2 + EXPLODE_OFFSET ])
-dock_front_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
+//color("red")
+//translate([0,0,(-DOCK_BODY_DEPTH-DOCK_BACK_THICKNESS)/2- EXPLODE_OFFSET])
+//rotate([180,0,0])
+//dock_back_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
+//
+//color("red")
+//translate([0,0,(+DOCK_BODY_DEPTH+DOCK_BACK_THICKNESS)/2 + EXPLODE_OFFSET ])
+//dock_front_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
 
 
 module dock_body(width, height, depth) {
@@ -198,17 +204,38 @@ module button() {
     cube([BUTTON_TOP_WIDTH, BUTTON_TOP_HEIGHT, 3], true);        
 }
 
+module cylindric_button() {
+    cylinder(DOCK_WALL_THICKNESS*2, BUTTON_CYLINDER_DIAMETER, BUTTON_CYLINDER_DIAMETER, true);        
+}
+
+module button_rail() {
+    cube([BUTTON_RAIL_HEIGHT, BUTTON_RAIL_WIDTH, BUTTON_RAIL_DEPTH], true);        
+}
+
+
+
 module button_row(button_bottom_width, button_bottom_distance){
-    translate_step = button_bottom_width + button_bottom_distance;
-    button_distance = 3;
+    translate_step = BUTTON_BOTTOM_WIDTH + BUTTON_BOTTOM_DISTANCE;
     
     initial_translation = translate_step;
     translate([0, -initial_translation, 0])
     for (n = [0:1:2]){
         translate([0,n*translate_step, 0]) 
         rotate([0,90,0])
-        button();
-    };    
+        cylindric_button();
+    };     
+}
+
+module button_rail_row(){
+    translate_step = BUTTON_BOTTOM_WIDTH + BUTTON_BOTTOM_DISTANCE;
+    
+    initial_translation = translate_step;
+    translate([-BUTTON_RAIL_WIDTH-DOCK_WALL_THICKNESS/2, -initial_translation, -BUTTON_RAIL_OFFSET])
+    for (n = [0:1:2]){
+        translate([0,n*translate_step, 0]) 
+        rotate([0,90,0])
+        button_rail();
+    };     
 }
 
 
@@ -254,7 +281,7 @@ module dock_rim_with_buttons(width, height, depth, wall_thickness, button_body_w
 
     echo(cylinder_height);
 
-    union(){
+    union(){ 
         difference(){
             dock_rim(width, height, depth, wall_thickness);
 
@@ -281,7 +308,9 @@ module dock_rim_with_buttons(width, height, depth, wall_thickness, button_body_w
         rotate([90,0,0])
         screw_port(nut_holder_wall_thickness, nut_holder_base_thickness);    
         
-        //TODO: add shelves for the bottons        
+        //TODO: add shelves for the bottons       
+        translate([width/2,0,0])
+        button_rail_row();        
         
         // Construction screws
         //DOING NOW! SCREWS
