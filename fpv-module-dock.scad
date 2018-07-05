@@ -21,15 +21,15 @@ NUT_HOLDER_BASE_THICKNESS = 1.5;
 NUMBER_OF_BUTTONS = 3;
 BUTTON_TOP_WIDTH = 4;
 BUTTON_TOP_HEIGHT = 4;
-BUTTON_BOTTOM_WIDTH = 6;
-BUTTON_BOTTOM_HEIGHT = 6;
+BUTTON_BOTTOM_WIDTH = 6.20;
+BUTTON_BOTTOM_HEIGHT = 6.20;
 BUTTON_BOTTOM_DISTANCE = 2;
-BUTTON_CYLINDER_DIAMETER = 3;
+BUTTON_CYLINDER_DIAMETER = 3.5;
 
-BUTTON_RAIL_DEPTH = 7;
-BUTTON_RAIL_WIDTH = 3;
-BUTTON_RAIL_HEIGHT = 2;
-BUTTON_RAIL_OFFSET = 4;
+BUTTON_RAIL_DEPTH = 4;
+BUTTON_RAIL_WIDTH = 2;
+BUTTON_RAIL_HEIGHT = (DOCK_BODY_DEPTH - BUTTON_CYLINDER_DIAMETER - BUTTON_BOTTOM_HEIGHT)/2;
+BUTTON_RAIL_OFFSET = -(DOCK_BODY_DEPTH - BUTTON_RAIL_HEIGHT)/2;
 
 /* [GOLDPIN POSITION] */
 LID_OFFSET = 2.5;     // To be 2.27, safer to set 2.5
@@ -46,13 +46,13 @@ GOLDPIN_SHELF_WALL_THICKNESS = 1.5;
 
 //GOLDPIN_SHELF_MOUNT = 2;
 GOLDPIN_SHELF_MOUNT_WIDTH = 2.5;
-GOLDPIN_SHELF_MOUNT_HEIGHT = 4.6;
+GOLDPIN_SHELF_MOUNT_HEIGHT = 4.95;
 
 /* [MINIJACK PORT SIZE] */
-MINIJACK_PORT_RADIUS = 7.2;
+MINIJACK_PORT_RADIUS = 7;
 
 /* [DC PORT SIZE] */
-DC_PORT_RADIUS = 7.2;  //11.5 body mounted
+DC_PORT_RADIUS = 7.4;  //11.5 body mounted
 
 /* [MOUNTING ELEMS] */
 SCREW_DIAMETER = 3; // M3 screw
@@ -214,7 +214,9 @@ module button_rail() {
 
 
 
-module button_row(button_bottom_width, button_bottom_distance){
+module button_row(
+
+, button_bottom_distance){
     translate_step = BUTTON_BOTTOM_WIDTH + BUTTON_BOTTOM_DISTANCE;
     
     initial_translation = translate_step;
@@ -230,7 +232,7 @@ module button_rail_row(){
     translate_step = BUTTON_BOTTOM_WIDTH + BUTTON_BOTTOM_DISTANCE;
     
     initial_translation = translate_step;
-    translate([-BUTTON_RAIL_WIDTH-DOCK_WALL_THICKNESS/2, -initial_translation, -BUTTON_RAIL_OFFSET])
+    translate([-BUTTON_RAIL_DEPTH/2-DOCK_WALL_THICKNESS/2, -initial_translation, -BUTTON_RAIL_OFFSET])
     for (n = [0:1:2]){
         translate([0,n*translate_step, 0]) 
         rotate([0,90,0])
