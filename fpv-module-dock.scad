@@ -18,18 +18,18 @@ NUT_HOLDER_WALL_THICKNESS = 1.5;
 NUT_HOLDER_BASE_THICKNESS = 1.5;
 
 /* [BUTTONS] */
-NUMBER_OF_BUTTONS = 3;
 BUTTON_TOP_WIDTH = 4;
 BUTTON_TOP_HEIGHT = 4;
-BUTTON_BOTTOM_WIDTH = 6.20;
-BUTTON_BOTTOM_HEIGHT = 6.20;
+BUTTON_BOTTOM_WIDTH = 6.0;
+BUTTON_BOTTOM_HEIGHT = 6.0;
+BUTTON_BOTTOM_DEPTH = 4.10;
+BUTTON_TRIGGER_DEPTH = 5.85;
 BUTTON_BOTTOM_DISTANCE = 2;
 BUTTON_CYLINDER_DIAMETER = 3.5;
 
-BUTTON_RAIL_DEPTH = 4;
-BUTTON_RAIL_WIDTH = 2;
-BUTTON_RAIL_HEIGHT = (DOCK_BODY_DEPTH - BUTTON_CYLINDER_DIAMETER - BUTTON_BOTTOM_HEIGHT)/2;
-BUTTON_RAIL_OFFSET = -(DOCK_BODY_DEPTH - BUTTON_RAIL_HEIGHT)/2;
+BUTTON_RAIL_DEPTH = 6;
+BUTTON_RAIL_WIDTH = BUTTON_BOTTOM_WIDTH - 0.1;
+BUTTON_RAIL_TOP_OFFSET = 4;
 
 /* [GOLDPIN POSITION] */
 LID_OFFSET = 2.5;     // To be 2.27, safer to set 2.5
@@ -37,6 +37,7 @@ GOLDPIN_RASTER_EDGE_DISTANCE = 25;
 
 /* [GOLDPIN SIZE] */
 RASTER_INTERPIN_DISTANCE = 2.54; // specs
+RASTER_DEPTH = 2.60; // experimental
 RASTER_SLOT_HEIGHT = 8.45; // measured
 RASTER_TOTAL_HEIGHT = 11.41; // measured
 RASTER_PIN_WIDTH = 0.64 + 0.3;  //specs + 0.3
@@ -70,8 +71,18 @@ DELTA = 0.001; // used for non-perfect diffs
 /* [HIDDEN] */
 $fn = 128;
 
+
 //color("grey")
-dock_rim_with_buttons(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT, DOCK_BODY_DEPTH, DOCK_WALL_THICKNESS, BUTTON_BOTTOM_WIDTH, BUTTON_BOTTOM_DISTANCE, NUT_HOLDER_WALL_THICKNESS, NUT_HOLDER_BASE_THICKNESS);
+//dock_rim_with_buttons(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT, DOCK_BODY_DEPTH, DOCK_WALL_THICKNESS, BUTTON_BOTTOM_WIDTH, BUTTON_BOTTOM_DISTANCE, NUT_HOLDER_WALL_THICKNESS, NUT_HOLDER_BASE_THICKNESS);
+
+DESIRED_HEIGHT = 10;
+intersection(){
+    dock_rim_with_buttons(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT, DOCK_BODY_DEPTH, DOCK_WALL_THICKNESS, BUTTON_BOTTOM_WIDTH, BUTTON_BOTTOM_DISTANCE, NUT_HOLDER_WALL_THICKNESS, NUT_HOLDER_BASE_THICKNESS);
+
+    translate([DOCK_BODY_WIDTH/2,0,DOCK_BODY_DEPTH/2 - DESIRED_HEIGHT/2])
+    cube([DOCK_BODY_WIDTH-30, DOCK_BODY_HEIGHT+4, DESIRED_HEIGHT], true);
+    
+}    
 
 //color("red")
 //translate([0,0,(-DOCK_BODY_DEPTH-DOCK_BACK_THICKNESS)/2- EXPLODE_OFFSET])
@@ -82,6 +93,7 @@ dock_rim_with_buttons(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT, DOCK_BODY_DEPTH, DOCK_W
 //translate([0,0,(+DOCK_BODY_DEPTH+DOCK_BACK_THICKNESS)/2 + EXPLODE_OFFSET ])
 //dock_front_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
 
+//button_row();
 
 module dock_body(width, height, depth) {
     x_translate = width-CORNER_CURVE_DIAMETER;
@@ -186,37 +198,59 @@ module dock_rim(width, height, depth, wall_thickness) {
     
     scaled_curve = CORNER_CURVE_DIAMETER * curve_ratio;
     
-    difference(){
-        dock_body(width, height, depth);
-        dock_body(width-wall_thickness, height-wall_thickness, 2*depth, scaled_curve);
-    };
-    
-    translate([0,0,DOCK_PROTECTOR_DEPTH/2])
-    difference(){
-        dock_body(width, height, depth+DOCK_PROTECTOR_DEPTH);
-        cube([width*2, height-DOCK_PROTECTOR_HEIGHT, depth*2], true);
-    };
+    union(){
+        difference(){
+            dock_body(width, height, depth);
+            dock_body(width-wall_thickness, height-wall_thickness, 2*depth, scaled_curve);
+        };
+        
+        translate([0,0,DOCK_PROTECTOR_DEPTH/2])
+        difference(){
+            dock_body(width, height, depth+DOCK_PROTECTOR_DEPTH);
+            cube([width*2, height-DOCK_PROTECTOR_HEIGHT, depth*2], true);
+        };
+
+        // TODO: Button rail is not a good idea, redesign a slide-in solution with a cover
+        translate([width/2 - DOCK_WALL_THICKNESS/2 - BUTTON_RAIL_DEPTH/2 ,0, 0])
+        rotate([0,180,0])
+        button_rail_row();
+    }
         
     //TODO: add grill for better air flow
 }
 
 module button() {
-    cube([BUTTON_TOP_WIDTH, BUTTON_TOP_HEIGHT, 3], true);        
+    union(){        
+        cube([BUTTON_BOTTOM_WIDTH, BUTTON_BOTTOM_HEIGHT, BUTTON_BOTTOM_DEPTH], true);       
+        translate([0,0,BUTTON_BOTTOM_DEPTH/2 + BUTTON_TRIGGER_DEPTH/2])
+        cylinder(BUTTON_TRIGGER_DEPTH, BUTTON_CYLINDER_DIAMETER/2, BUTTON_CYLINDER_DIAMETER/2, true);        
+    }
 }
 
-module cylindric_button() {
-    cylinder(DOCK_WALL_THICKNESS*2, BUTTON_CYLINDER_DIAMETER/2, BUTTON_CYLINDER_DIAMETER/2, true);        
+module hulled_cylindric_button(){
+    union(){
+        hull(){
+            cube([BUTTON_BOTTOM_WIDTH, BUTTON_BOTTOM_HEIGHT, BUTTON_BOTTOM_DEPTH], true);    
+            translate([DOCK_BODY_DEPTH*2,0,0])
+            cube([BUTTON_BOTTOM_WIDTH, BUTTON_BOTTOM_HEIGHT, BUTTON_BOTTOM_DEPTH], true);       
+        }
+        translate([0,0,BUTTON_BOTTOM_DEPTH/2 + BUTTON_TRIGGER_DEPTH/2])
+        hull(){
+            cylinder(BUTTON_TRIGGER_DEPTH, BUTTON_CYLINDER_DIAMETER/2, BUTTON_CYLINDER_DIAMETER/2, true); 
+            translate([DOCK_BODY_DEPTH*2,0,0])
+            cylinder(BUTTON_TRIGGER_DEPTH, BUTTON_CYLINDER_DIAMETER/2, BUTTON_CYLINDER_DIAMETER/2, true);        
+        }          
+    }
 }
 
 module button_rail() {
-    cube([BUTTON_RAIL_HEIGHT, BUTTON_RAIL_WIDTH, BUTTON_RAIL_DEPTH], true);        
+    translate([BUTTON_RAIL_TOP_OFFSET/2,0,0])
+    cube([DOCK_BODY_DEPTH-BUTTON_RAIL_TOP_OFFSET, BUTTON_RAIL_WIDTH, BUTTON_RAIL_DEPTH], true);        
 }
 
 
 
-module button_row(
-
-, button_bottom_distance){
+module button_row(){
     translate_step = BUTTON_BOTTOM_WIDTH + BUTTON_BOTTOM_DISTANCE;
     
     initial_translation = translate_step;
@@ -224,20 +258,34 @@ module button_row(
     for (n = [0:1:2]){
         translate([0,n*translate_step, 0]) 
         rotate([0,90,0])
-        cylindric_button();
+        button();
     };     
+}
+
+module button_hulled_row_insert(){
+    translate_step = BUTTON_BOTTOM_WIDTH + BUTTON_BOTTOM_DISTANCE;
+    
+    initial_translation = translate_step;
+    translate([0, -initial_translation, 0])
+    for (n = [0:1:2]){
+        translate([0,n*translate_step, 0]) 
+        rotate([0,-90,0])
+        hulled_cylindric_button();
+    };      
 }
 
 module button_rail_row(){
     translate_step = BUTTON_BOTTOM_WIDTH + BUTTON_BOTTOM_DISTANCE;
     
     initial_translation = translate_step;
-    translate([-BUTTON_RAIL_DEPTH/2-DOCK_WALL_THICKNESS/2, -initial_translation, -BUTTON_RAIL_OFFSET])
-    for (n = [0:1:2]){
-        translate([0,n*translate_step, 0]) 
-        rotate([0,90,0])
-        button_rail();
-    };     
+    translate([0, -initial_translation, 0])
+    union(){        
+        for (n = [0:1:2]){
+            translate([0,n*translate_step, 0]) 
+            rotate([0,90,0])
+            button_rail();
+        };  
+    }   
 }
 
 
@@ -283,13 +331,15 @@ module dock_rim_with_buttons(width, height, depth, wall_thickness, button_body_w
 
     echo(cylinder_height);
 
-    union(){ 
+    union(){        
+                
         difference(){
             dock_rim(width, height, depth, wall_thickness);
 
             // Placeholder for buttons
-            translate([width/2,0,0])
-            button_row(button_body_width, button_bottom_distance);
+            translate([width/2-BUTTON_BOTTOM_DEPTH/2-DOCK_WALL_THICKNESS/2,0,0])
+            rotate([180,0,180])        
+            button_hulled_row_insert();  
             
             // Placeholder for the photo nut            
             translate([0,-height/2,0])        
@@ -305,14 +355,11 @@ module dock_rim_with_buttons(width, height, depth, wall_thickness, button_body_w
             rotate([0,90,0])            
             cylinder(height,(DC_PORT_RADIUS+2*TOLERANCE)/2, (DC_PORT_RADIUS/2+2*TOLERANCE), true);                               
         }
+        
     
         translate([0,-height/2+cylinder_height/2,0])
         rotate([-90,180,0])
-        screw_port(nut_holder_wall_thickness, nut_holder_base_thickness);    
-        
-        // TODO: Button rail is not a good idea, redesign a slide-in solution with a cover
-        translate([width/2,0,0])
-        button_rail_row();        
+        screw_port(nut_holder_wall_thickness, nut_holder_base_thickness);       
         
         // Construction screws
         translate([special_x_translation,0,0])    
@@ -337,11 +384,11 @@ module dock_rim_with_buttons(width, height, depth, wall_thickness, button_body_w
         goldpin_shelf();
         
         // Shelf mount 1
-        translate([(width - GOLDPIN_RASTER_EDGE_DISTANCE - GOLDPIN_SHELF_MOUNT_WIDTH - RASTER_PIN_WIDTH - GOLDPIN_SHELF_WALL_THICKNESS)/2,0,DOCK_BODY_DEPTH/2-GOLDPIN_SHELF_MOUNT_HEIGHT/2])                
+        translate([(width - GOLDPIN_RASTER_EDGE_DISTANCE - GOLDPIN_SHELF_MOUNT_WIDTH - RASTER_DEPTH)/2,0,DOCK_BODY_DEPTH/2-GOLDPIN_SHELF_MOUNT_HEIGHT/2])                
         cube([GOLDPIN_SHELF_MOUNT_WIDTH,DOCK_BODY_HEIGHT,GOLDPIN_SHELF_MOUNT_HEIGHT],true);
         
         // Shelf mount 2        
-        translate([(width - GOLDPIN_RASTER_EDGE_DISTANCE + GOLDPIN_SHELF_MOUNT_WIDTH + RASTER_PIN_WIDTH + GOLDPIN_SHELF_WALL_THICKNESS)/2,0,DOCK_BODY_DEPTH/2-GOLDPIN_SHELF_MOUNT_HEIGHT/2])        
+        translate([(width - GOLDPIN_RASTER_EDGE_DISTANCE + GOLDPIN_SHELF_MOUNT_WIDTH + RASTER_DEPTH)/2,0,DOCK_BODY_DEPTH/2-GOLDPIN_SHELF_MOUNT_HEIGHT/2])        
         cube([GOLDPIN_SHELF_MOUNT_WIDTH,DOCK_BODY_HEIGHT,GOLDPIN_SHELF_MOUNT_HEIGHT],true);        
     }        
 }
@@ -349,7 +396,7 @@ module dock_rim_with_buttons(width, height, depth, wall_thickness, button_body_w
 module raster_single_pin(){
     slot_height = RASTER_SLOT_HEIGHT;
     slot_width = RASTER_INTERPIN_DISTANCE + DELTA;  //specs
-    slot_depth = RASTER_INTERPIN_DISTANCE + DELTA;  //specs
+    slot_depth = RASTER_DEPTH + DELTA;  //specs
         
     pin_width = RASTER_PIN_WIDTH + TOLERANCE;
     pin_depth = RASTER_PIN_WIDTH + TOLERANCE; // using wider width
