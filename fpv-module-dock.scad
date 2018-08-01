@@ -56,10 +56,10 @@ POLOLU_MINI_SHELF_SIDE = 4;
 POLOLU_SCREW_DIAMETER = 2.27;
 
 /* [MINIJACK PORT SIZE] */
-MINIJACK_PORT_RADIUS = 7;
+MINIJACK_PORT_RADIUS = 7.1;
 
 /* [DC PORT SIZE] */
-DC_PORT_RADIUS = 7.4;  //11.5 body mounted
+DC_PORT_RADIUS = 7.6;  //11.5 body mounted
 
 /* [MOUNTING ELEMS] */
 SCREW_DIAMETER = 3; // M3 screw
@@ -216,8 +216,8 @@ module cylindric_button() {
 }
 
 module button_rail() {
-    button_support_thickness = 2;
-    button_support_height = 12;
+    button_support_thickness = 2.0;
+    button_support_height = 10;
     cube([BUTTON_RAIL_DEPTH, BUTTON_RAIL_WIDTH, BUTTON_RAIL_HEIGHT], true);        
 
     translate([-button_support_thickness/2-BUTTON_RAIL_HEIGHT/2,0,-button_support_height/2+BUTTON_RAIL_HEIGHT/2])
@@ -397,8 +397,8 @@ module dock_rim_with_buttons(width, height, depth, wall_thickness, button_body_w
         regulator_shelf();
         
         // Additional block
-        translate([-9.5,0,DOCK_BODY_DEPTH/2-GOLDPIN_SHELF_MOUNT_HEIGHT/2])   
-        cube([GOLDPIN_SHELF_MOUNT_WIDTH,DOCK_BODY_HEIGHT,GOLDPIN_SHELF_MOUNT_HEIGHT],true);     
+        translate([-9.5,0,DOCK_BODY_DEPTH/2-GOLDPIN_SHELF_MOUNT_HEIGHT/2/2])   
+        cube([GOLDPIN_SHELF_MOUNT_WIDTH,DOCK_BODY_HEIGHT,GOLDPIN_SHELF_MOUNT_HEIGHT/2],true);     
     }        
 }
 
