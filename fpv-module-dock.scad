@@ -3,7 +3,8 @@ DOCK_BODY_DEPTH = 14;
 DOCK_BODY_HEIGHT = 40;
 DOCK_BODY_WIDTH = 60;
 
-DOCK_BACK_THICKNESS = 2;
+DOCK_BACK_THICKNESS = 6;
+DOCK_FRONT_THICKNESS = 2;
 DOCK_WALL_THICKNESS = 3.5;
 
 //Protector should be a part of the front cover - it will be easier to print per module
@@ -21,9 +22,16 @@ NUT_HOLDER_BASE_THICKNESS = 1.5;
 NUMBER_OF_BUTTONS = 3;
 BUTTON_TOP_WIDTH = 4;
 BUTTON_TOP_HEIGHT = 4;
-BUTTON_BOTTOM_WIDTH = 6;
-BUTTON_BOTTOM_HEIGHT = 6;
+BUTTON_BOTTOM_WIDTH = 6.20;
+BUTTON_BOTTOM_HEIGHT = 6.20;
 BUTTON_BOTTOM_DISTANCE = 2;
+BUTTON_CYLINDER_DIAMETER = 3.5;
+BUTTON_CYLINDER_TO_WALL = (BUTTON_BOTTOM_WIDTH - BUTTON_CYLINDER_DIAMETER)/2;
+
+BUTTON_RAIL_DEPTH = 4;
+BUTTON_RAIL_WIDTH = 4.4;
+BUTTON_RAIL_HEIGHT = (DOCK_BODY_DEPTH - BUTTON_BOTTOM_HEIGHT)/2;
+BUTTON_RAIL_OFFSET = -(DOCK_BODY_DEPTH - BUTTON_RAIL_HEIGHT)/2;
 
 /* [GOLDPIN POSITION] */
 LID_OFFSET = 2.5;     // To be 2.27, safer to set 2.5
@@ -40,19 +48,31 @@ GOLDPIN_SHELF_WALL_THICKNESS = 1.5;
 
 //GOLDPIN_SHELF_MOUNT = 2;
 GOLDPIN_SHELF_MOUNT_WIDTH = 2.5;
-GOLDPIN_SHELF_MOUNT_HEIGHT = 4.6;
+GOLDPIN_SHELF_MOUNT_HEIGHT = 4.95;
+
+/* [POLOLU SIZE] */
+POLOLU_SIDE = 17.87;
+POLOLU_SHELF_THICKNESS = 2;
+POLOLU_MINI_SHELF_SIDE = 4;
+POLOLU_SCREW_DIAMETER = 2.27;
 
 /* [MINIJACK PORT SIZE] */
-MINIJACK_PORT_RADIUS = 7.2;
+MINIJACK_PORT_RADIUS = 7.1;
 
 /* [DC PORT SIZE] */
-DC_PORT_RADIUS = 7.2;  //11.5 body mounted
+DC_PORT_RADIUS = 7.6;  //11.5 body mounted
 
 /* [MOUNTING ELEMS] */
 SCREW_DIAMETER = 3; // M3 screw
-SCREW_HEAD_DIAMETER = 6; // M3 screw
-SCREW_HEAD_THICKNESS = 2.4; // M3 screw
+SCREW_HEAD_DIAMETER = 6.4; // M3 screw
+SCREW_HEAD_THICKNESS = 3.07; // M3 screw
 SCREW_WALL_DISTANCE = 0;
+SCREW_HEX_HEIGHT = 5.42;
+SCREW_HEX_RADIUS = 6.20;
+SCREW_HEX_THICKNESS = 2.42;
+
+/* [VENTS] */
+VENT_THICKNESS = 1.8;
 
 /* [MISC] */
 CORNER_CURVE_DIAMETER = 10;
@@ -73,8 +93,8 @@ rotate([180,0,0])
 dock_back_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
 
 color("red")
-translate([0,0,(+DOCK_BODY_DEPTH+DOCK_BACK_THICKNESS)/2 + EXPLODE_OFFSET ])
-dock_front_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
+translate([0,0,(+DOCK_BODY_DEPTH+DOCK_FRONT_THICKNESS)/2 + EXPLODE_OFFSET ])
+dock_front_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_FRONT_THICKNESS);
 
 
 module dock_body(width, height, depth) {
@@ -96,7 +116,7 @@ module dock_body(width, height, depth) {
     }
 }
 
-module dock_back_wall(width, height, depth){
+module dock_wall_base(width, height, depth){
    x_translate = width-CORNER_CURVE_DIAMETER;
    y_translate = height-CORNER_CURVE_DIAMETER;
         
@@ -121,8 +141,7 @@ module dock_back_wall(width, height, depth){
             
             translate([x_translate/2, -y_translate/2, 0])
             cylinder(depth,CORNER_CURVE_DIAMETER/2, CORNER_CURVE_DIAMETER/2, true);        
-        }
-        
+        };          
         //substract screws           
         translate([special_x_translation, 0, 0])
         cylinder(DOCK_BACK_THICKNESS,SCREW_DIAMETER/2,SCREW_DIAMETER/2,true);             
@@ -137,32 +156,98 @@ module dock_back_wall(width, height, depth){
         cylinder(DOCK_BACK_THICKNESS,SCREW_DIAMETER/2,SCREW_DIAMETER/2,true);                           
         
         translate([-x_translation, -y_translation, 0])
-        cylinder(DOCK_BACK_THICKNESS,SCREW_DIAMETER/2,SCREW_DIAMETER/2,true);       
+        cylinder(DOCK_BACK_THICKNESS,SCREW_DIAMETER/2,SCREW_DIAMETER/2,true);           
+        
+        //substract vents        
+        translate([-18, 0, 0])
+        cube([VENT_THICKNESS, DOCK_BODY_HEIGHT*2/3, DOCK_BACK_THICKNESS*2], true);                                      
+        translate([-12, 0, 0])
+        cube([VENT_THICKNESS, DOCK_BODY_HEIGHT*2/3, DOCK_BACK_THICKNESS*2], true);                              
+        translate([-6, 0, 0])
+        cube([VENT_THICKNESS, DOCK_BODY_HEIGHT*2/3, DOCK_BACK_THICKNESS*2], true);                        
+        translate([0, 0, 0])
+        cube([VENT_THICKNESS, DOCK_BODY_HEIGHT*2/3, DOCK_BACK_THICKNESS*2], true);
+        translate([6, 0, 0])
+        cube([VENT_THICKNESS, DOCK_BODY_HEIGHT*2/3, DOCK_BACK_THICKNESS*2], true);                          
+   }     
+}
+
+module dock_back_wall(width, height, depth){
+   x_translate = width-CORNER_CURVE_DIAMETER;
+   y_translate = height-CORNER_CURVE_DIAMETER;
+        
+   //TODO: refactor these 
+   slot_diameter = SCREW_DIAMETER/2 + 1.0;
+   washer_diameter = SCREW_DIAMETER/2 + 4.0;
+   y_offset = max(DOCK_WALL_THICKNESS, DOCK_PROTECTOR_HEIGHT);    
+   x_translation = (width-DOCK_WALL_THICKNESS)/2 - slot_diameter - SCREW_WALL_DISTANCE;    
+   special_x_translation = x_translation - GOLDPIN_RASTER_EDGE_DISTANCE/2 - SCREW_DIAMETER/2;
+   y_translation = (height-y_offset)/2 - slot_diameter - SCREW_WALL_DISTANCE;        
+    
+   z_translation = 3.1;    
+    
+   echo("Back Z translation", z_translation);    
+   difference(){
+        dock_wall_base(width, height, depth);    
  
         //substract screw washer           
-        translate([special_x_translation, 0, DOCK_BACK_THICKNESS/2])
-        cylinder(DOCK_BACK_THICKNESS,washer_diameter/2,washer_diameter/2,true);             
+        translate([special_x_translation, 0, z_translation])
+        cylinder(DOCK_BACK_THICKNESS,washer_diameter/2,washer_diameter/2,true);       
         
-        translate([x_translation, y_translation, DOCK_BACK_THICKNESS/2])
-        cylinder(DOCK_BACK_THICKNESS,washer_diameter/2,washer_diameter/2,true);        
+        translate([x_translation, y_translation, z_translation])
+        cylinder(DOCK_BACK_THICKNESS,washer_diameter/2,washer_diameter/2,true);       
     
-        translate([-x_translation, y_translation, DOCK_BACK_THICKNESS/2])
-        cylinder(DOCK_BACK_THICKNESS,washer_diameter/2,washer_diameter/2,true);               
-        translate([x_translation, -y_translation, DOCK_BACK_THICKNESS/2])
-        cylinder(DOCK_BACK_THICKNESS,washer_diameter/2,washer_diameter/2,true);                           
-        translate([-x_translation, -y_translation, DOCK_BACK_THICKNESS/2])
-        cylinder(DOCK_BACK_THICKNESS,washer_diameter/2,washer_diameter/2,true);             
+        translate([-x_translation, y_translation, z_translation])
+        cylinder(DOCK_BACK_THICKNESS,washer_diameter/2,washer_diameter/2,true);       
+        translate([x_translation, -y_translation, z_translation])
+        cylinder(DOCK_BACK_THICKNESS,washer_diameter/2,washer_diameter/2,true);       
+       
+        translate([-x_translation, -y_translation, z_translation])
+        cylinder(DOCK_BACK_THICKNESS,washer_diameter/2,washer_diameter/2,true);       
     }    
 }
 
+module m3_hex_screw(thicnkess){
+        hexagon(SCREW_HEX_HEIGHT, thicnkess);    
+}
+
 module dock_front_wall(width, height, depth){
+    x_translate = width-CORNER_CURVE_DIAMETER;
+    y_translate = height-CORNER_CURVE_DIAMETER;
+        
+    //TODO: refactor these 
+    slot_diameter = SCREW_DIAMETER/2 + 1.0;
+    washer_diameter = SCREW_DIAMETER/2 + 4.0;
+    y_offset = max(DOCK_WALL_THICKNESS, DOCK_PROTECTOR_HEIGHT);    
+    x_translation = (width-DOCK_WALL_THICKNESS)/2 - slot_diameter - SCREW_WALL_DISTANCE;    
+    special_x_translation = x_translation - GOLDPIN_RASTER_EDGE_DISTANCE/2 - SCREW_DIAMETER/2;
+    y_translation = (height-y_offset)/2 - slot_diameter - SCREW_WALL_DISTANCE;      
+    
+    z_translation = 0.5;
+    
+    echo("Front Z translation", z_translation);
     intersection(){
         difference(){
-            dock_back_wall(width, height, depth);        
+            dock_wall_base(width, height, depth);        
 
             translate([(width-GOLDPIN_RASTER_EDGE_DISTANCE)/2,0,0])            
             rotate([0,0,90])
-            raster_n_pins(9);                 
+            raster_n_pins(9);
+    
+            //substract screw washer           
+            translate([special_x_translation, 0, z_translation])
+            m3_hex_screw(DOCK_FRONT_THICKNESS);            
+            
+            translate([x_translation, y_translation, z_translation])
+            m3_hex_screw(DOCK_FRONT_THICKNESS);            
+        
+            translate([-x_translation, y_translation, z_translation])
+            m3_hex_screw(DOCK_FRONT_THICKNESS);            
+            translate([x_translation, -y_translation, z_translation])
+            m3_hex_screw(DOCK_FRONT_THICKNESS);
+            
+            translate([-x_translation, -y_translation, z_translation])
+            m3_hex_screw(DOCK_FRONT_THICKNESS);            
         }    
         cube([width,height-DOCK_PROTECTOR_HEIGHT-TOLERANCE,10],true);
     }     
@@ -198,17 +283,58 @@ module button() {
     cube([BUTTON_TOP_WIDTH, BUTTON_TOP_HEIGHT, 3], true);        
 }
 
-module button_row(button_bottom_width, button_bottom_distance){
-    translate_step = button_bottom_width + button_bottom_distance;
-    button_distance = 3;
+module cylindric_button() {
+    cylinder(DOCK_WALL_THICKNESS*2, BUTTON_CYLINDER_DIAMETER/2, BUTTON_CYLINDER_DIAMETER/2, true);        
+}
+
+module button_rail() {
+    button_support_thickness = 2.0;
+    button_support_height = 10;
+    cube([BUTTON_RAIL_DEPTH, BUTTON_RAIL_WIDTH, BUTTON_RAIL_HEIGHT], true);        
+
+    translate([-button_support_thickness/2-BUTTON_RAIL_HEIGHT/2,0,-button_support_height/2+BUTTON_RAIL_HEIGHT/2])
+    cube([button_support_thickness, BUTTON_RAIL_WIDTH, button_support_height], true);        
+}
+
+
+
+module button_row(button_body_width, button_bottom_distance){
+    translate_step = BUTTON_BOTTOM_WIDTH + BUTTON_BOTTOM_DISTANCE;
     
     initial_translation = translate_step;
     translate([0, -initial_translation, 0])
     for (n = [0:1:2]){
         translate([0,n*translate_step, 0]) 
         rotate([0,90,0])
-        button();
-    };    
+        cylindric_button();
+    };     
+}
+
+module hulled_button_row(button_body_width, button_bottom_distance){
+    translate_step = BUTTON_BOTTOM_WIDTH + BUTTON_BOTTOM_DISTANCE;
+    
+    initial_translation = translate_step;
+    translate([0, -initial_translation, 0])
+    for (n = [0:1:2]){
+        translate([0,n*translate_step, 0]) 
+        rotate([0,90,0])
+        hull(){
+            cylindric_button();            
+            translate([10,0,0])
+            cylindric_button();            
+        }
+    };     
+}
+
+module button_rail_row(){
+    translate_step = BUTTON_BOTTOM_WIDTH + BUTTON_BOTTOM_DISTANCE;
+    
+    initial_translation = translate_step;
+    translate([-BUTTON_RAIL_DEPTH/2-DOCK_WALL_THICKNESS/2, -initial_translation, -BUTTON_RAIL_OFFSET])
+    for (n = [0:1:2]){
+        translate([0,n*translate_step, 0]) 
+        button_rail();
+    };     
 }
 
 
@@ -216,7 +342,7 @@ module goldpin_shelf(){
     pins = 9;
     
     shelf_thickness = GOLDPIN_SHELF_WALL_THICKNESS;
-    shelf_height = RASTER_SLOT_HEIGHT - LID_OFFSET - DOCK_BACK_THICKNESS + GOLDPIN_SHELF_BASE;
+    shelf_height = RASTER_SLOT_HEIGHT - LID_OFFSET - DOCK_FRONT_THICKNESS + GOLDPIN_SHELF_BASE;
 
     echo("**");    
     echo(shelf_height);
@@ -229,7 +355,29 @@ module goldpin_shelf(){
         cube([width,height,shelf_height],true);  
         color("red")
         raster_n_pins(pins);        
-    };            
+    };                        
+}
+
+module regulator_mini_shelf(){
+    difference(){
+        cube([POLOLU_MINI_SHELF_SIDE,POLOLU_MINI_SHELF_SIDE,POLOLU_SHELF_THICKNESS],true);
+        cylinder(POLOLU_SHELF_THICKNESS*2, POLOLU_SCREW_DIAMETER/2, POLOLU_SCREW_DIAMETER/2, true);
+    }    
+}
+
+module regulator_shelf(){
+    translation_value = (POLOLU_SIDE - POLOLU_MINI_SHELF_SIDE) / 2;
+    thinner_translation_value = (POLOLU_SIDE - POLOLU_MINI_SHELF_SIDE/2) / 2;
+
+    translate([thinner_translation_value,translation_value,0])
+    cube([POLOLU_MINI_SHELF_SIDE/2,POLOLU_MINI_SHELF_SIDE,2], true);
+
+    translate([translation_value,-translation_value,0])
+    regulator_mini_shelf();
+    
+    translate([-translation_value,translation_value,0])
+    regulator_mini_shelf();    
+    
 }
 
 function nut_cylinder_height(single_nut_height, base_thickness) = 2*(single_nut_height+base_thickness);
@@ -254,13 +402,14 @@ module dock_rim_with_buttons(width, height, depth, wall_thickness, button_body_w
 
     echo(cylinder_height);
 
-    union(){
+    union(){         
         difference(){
             dock_rim(width, height, depth, wall_thickness);
 
             // Placeholder for buttons
             translate([width/2,0,0])
-            button_row(button_body_width, button_bottom_distance);
+//            button_row(button_body_width, button_bottom_distance);
+            hulled_button_row(button_body_width, button_bottom_distance);            
             
             // Placeholder for the photo nut            
             translate([0,-height/2,0])        
@@ -278,14 +427,14 @@ module dock_rim_with_buttons(width, height, depth, wall_thickness, button_body_w
         }
     
         translate([0,-height/2+cylinder_height/2,0])
-        rotate([90,0,0])
+        rotate([-90,180,0])
         screw_port(nut_holder_wall_thickness, nut_holder_base_thickness);    
         
-        //TODO: add shelves for the bottons        
+        // TODO: Button rail is not a good idea, redesign a slide-in solution with a cover
+        translate([width/2,0,0])
+        button_rail_row();        
         
         // Construction screws
-        //DOING NOW! SCREWS
-        
         translate([special_x_translation,0,0])    
         screw_slot(depth, slot_diameter);
 
@@ -302,25 +451,33 @@ module dock_rim_with_buttons(width, height, depth, wall_thickness, button_body_w
         screw_slot(depth, slot_diameter);      
         
         // Shelf
-        translate([(width-GOLDPIN_RASTER_EDGE_DISTANCE)/2,0, DOCK_BODY_DEPTH/2 - RASTER_SLOT_HEIGHT/2 + LID_OFFSET + DOCK_BACK_THICKNESS])
+        translate([(width-GOLDPIN_RASTER_EDGE_DISTANCE)/2,0, DOCK_BODY_DEPTH/2 - RASTER_SLOT_HEIGHT/2 + LID_OFFSET + DOCK_FRONT_THICKNESS])
         rotate([0,0,90])
         
         goldpin_shelf();
         
         // Shelf mount 1
-        translate([(width - GOLDPIN_RASTER_EDGE_DISTANCE - GOLDPIN_SHELF_MOUNT_WIDTH - RASTER_PIN_WIDTH - GOLDPIN_SHELF_WALL_THICKNESS)/2,0,DOCK_BODY_DEPTH/2-GOLDPIN_SHELF_MOUNT_HEIGHT/2])                
+        translate([(width - GOLDPIN_RASTER_EDGE_DISTANCE - GOLDPIN_SHELF_MOUNT_WIDTH - RASTER_INTERPIN_DISTANCE - TOLERANCE)/2,0,DOCK_BODY_DEPTH/2-GOLDPIN_SHELF_MOUNT_HEIGHT/2])                
         cube([GOLDPIN_SHELF_MOUNT_WIDTH,DOCK_BODY_HEIGHT,GOLDPIN_SHELF_MOUNT_HEIGHT],true);
         
         // Shelf mount 2        
-        translate([(width - GOLDPIN_RASTER_EDGE_DISTANCE + GOLDPIN_SHELF_MOUNT_WIDTH + RASTER_PIN_WIDTH + GOLDPIN_SHELF_WALL_THICKNESS)/2,0,DOCK_BODY_DEPTH/2-GOLDPIN_SHELF_MOUNT_HEIGHT/2])        
+        translate([(width - GOLDPIN_RASTER_EDGE_DISTANCE + GOLDPIN_SHELF_MOUNT_WIDTH + RASTER_INTERPIN_DISTANCE + TOLERANCE)/2,0,DOCK_BODY_DEPTH/2-GOLDPIN_SHELF_MOUNT_HEIGHT/2])        
         cube([GOLDPIN_SHELF_MOUNT_WIDTH,DOCK_BODY_HEIGHT,GOLDPIN_SHELF_MOUNT_HEIGHT],true);        
+        
+        // Regulator shelf
+        translate([0.5,(DOCK_BODY_HEIGHT-DOCK_WALL_THICKNESS-POLOLU_SIDE)/2,2])
+        regulator_shelf();
+        
+        // Additional block
+        translate([-9.5,0,DOCK_BODY_DEPTH/2-GOLDPIN_SHELF_MOUNT_HEIGHT/2/2])   
+        cube([GOLDPIN_SHELF_MOUNT_WIDTH,DOCK_BODY_HEIGHT,GOLDPIN_SHELF_MOUNT_HEIGHT/2],true);     
     }        
 }
 
 module raster_single_pin(){
     slot_height = RASTER_SLOT_HEIGHT;
     slot_width = RASTER_INTERPIN_DISTANCE + DELTA;  //specs
-    slot_depth = RASTER_INTERPIN_DISTANCE + DELTA;  //specs
+    slot_depth = RASTER_INTERPIN_DISTANCE + TOLERANCE + DELTA;  //specs
         
     pin_width = RASTER_PIN_WIDTH + TOLERANCE;
     pin_depth = RASTER_PIN_WIDTH + TOLERANCE; // using wider width
@@ -374,9 +531,10 @@ module photo_nut_insert(nut_height, nut_width, multiplier) {
     }
 }
 
+// Photo screw port
 module screw_port(wall_thickness, base_thickness){
     cylinder_height = nut_cylinder_height(NUT_HEIGHT, base_thickness);    
-    cylinder_radius = NUT_WIDTH + 2*wall_thickness;
+    cylinder_radius = NUT_WIDTH + 2*wall_thickness - 0.1;
     
     inside_diameter = NUT_INSIDE_DIAMETER + TOLERANCE;
     
