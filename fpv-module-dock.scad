@@ -3,7 +3,8 @@ DOCK_BODY_DEPTH = 14;
 DOCK_BODY_HEIGHT = 40;
 DOCK_BODY_WIDTH = 60;
 
-DOCK_BACK_THICKNESS = 2;
+DOCK_BACK_THICKNESS = 6;
+DOCK_FRONT_THICKNESS = 2;
 DOCK_WALL_THICKNESS = 3.5;
 
 //Protector should be a part of the front cover - it will be easier to print per module
@@ -63,9 +64,15 @@ DC_PORT_RADIUS = 7.6;  //11.5 body mounted
 
 /* [MOUNTING ELEMS] */
 SCREW_DIAMETER = 3; // M3 screw
-SCREW_HEAD_DIAMETER = 6; // M3 screw
-SCREW_HEAD_THICKNESS = 2.4; // M3 screw
+SCREW_HEAD_DIAMETER = 6.4; // M3 screw
+SCREW_HEAD_THICKNESS = 3.07; // M3 screw
 SCREW_WALL_DISTANCE = 0;
+SCREW_HEX_HEIGHT = 5.42;
+SCREW_HEX_RADIUS = 6.20;
+SCREW_HEX_THICKNESS = 2.42;
+
+/* [VENTS] */
+VENT_THICKNESS = 1.8;
 
 /* [MISC] */
 CORNER_CURVE_DIAMETER = 10;
@@ -80,14 +87,14 @@ $fn = 128;
 //color("grey")
 dock_rim_with_buttons(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT, DOCK_BODY_DEPTH, DOCK_WALL_THICKNESS, BUTTON_BOTTOM_WIDTH, BUTTON_BOTTOM_DISTANCE, NUT_HOLDER_WALL_THICKNESS, NUT_HOLDER_BASE_THICKNESS);
 
-//color("red")
-//translate([0,0,(-DOCK_BODY_DEPTH-DOCK_BACK_THICKNESS)/2- EXPLODE_OFFSET])
-//rotate([180,0,0])
-//dock_back_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
-//
-//color("red")
-//translate([0,0,(+DOCK_BODY_DEPTH+DOCK_BACK_THICKNESS)/2 + EXPLODE_OFFSET ])
-//dock_front_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
+color("red")
+translate([0,0,(-DOCK_BODY_DEPTH-DOCK_BACK_THICKNESS)/2- EXPLODE_OFFSET])
+rotate([180,0,0])
+dock_back_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
+
+color("red")
+translate([0,0,(+DOCK_BODY_DEPTH+DOCK_FRONT_THICKNESS)/2 + EXPLODE_OFFSET ])
+dock_front_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_FRONT_THICKNESS);
 
 
 module dock_body(width, height, depth) {
@@ -109,7 +116,7 @@ module dock_body(width, height, depth) {
     }
 }
 
-module dock_back_wall(width, height, depth){
+module dock_wall_base(width, height, depth){
    x_translate = width-CORNER_CURVE_DIAMETER;
    y_translate = height-CORNER_CURVE_DIAMETER;
         
@@ -134,8 +141,7 @@ module dock_back_wall(width, height, depth){
             
             translate([x_translate/2, -y_translate/2, 0])
             cylinder(depth,CORNER_CURVE_DIAMETER/2, CORNER_CURVE_DIAMETER/2, true);        
-        }
-        
+        };          
         //substract screws           
         translate([special_x_translation, 0, 0])
         cylinder(DOCK_BACK_THICKNESS,SCREW_DIAMETER/2,SCREW_DIAMETER/2,true);             
@@ -150,32 +156,98 @@ module dock_back_wall(width, height, depth){
         cylinder(DOCK_BACK_THICKNESS,SCREW_DIAMETER/2,SCREW_DIAMETER/2,true);                           
         
         translate([-x_translation, -y_translation, 0])
-        cylinder(DOCK_BACK_THICKNESS,SCREW_DIAMETER/2,SCREW_DIAMETER/2,true);       
+        cylinder(DOCK_BACK_THICKNESS,SCREW_DIAMETER/2,SCREW_DIAMETER/2,true);           
+        
+        //substract vents        
+        translate([-18, 0, 0])
+        cube([VENT_THICKNESS, DOCK_BODY_HEIGHT*2/3, DOCK_BACK_THICKNESS*2], true);                                      
+        translate([-12, 0, 0])
+        cube([VENT_THICKNESS, DOCK_BODY_HEIGHT*2/3, DOCK_BACK_THICKNESS*2], true);                              
+        translate([-6, 0, 0])
+        cube([VENT_THICKNESS, DOCK_BODY_HEIGHT*2/3, DOCK_BACK_THICKNESS*2], true);                        
+        translate([0, 0, 0])
+        cube([VENT_THICKNESS, DOCK_BODY_HEIGHT*2/3, DOCK_BACK_THICKNESS*2], true);
+        translate([6, 0, 0])
+        cube([VENT_THICKNESS, DOCK_BODY_HEIGHT*2/3, DOCK_BACK_THICKNESS*2], true);                          
+   }     
+}
+
+module dock_back_wall(width, height, depth){
+   x_translate = width-CORNER_CURVE_DIAMETER;
+   y_translate = height-CORNER_CURVE_DIAMETER;
+        
+   //TODO: refactor these 
+   slot_diameter = SCREW_DIAMETER/2 + 1.0;
+   washer_diameter = SCREW_DIAMETER/2 + 4.0;
+   y_offset = max(DOCK_WALL_THICKNESS, DOCK_PROTECTOR_HEIGHT);    
+   x_translation = (width-DOCK_WALL_THICKNESS)/2 - slot_diameter - SCREW_WALL_DISTANCE;    
+   special_x_translation = x_translation - GOLDPIN_RASTER_EDGE_DISTANCE/2 - SCREW_DIAMETER/2;
+   y_translation = (height-y_offset)/2 - slot_diameter - SCREW_WALL_DISTANCE;        
+    
+   z_translation = 3.1;    
+    
+   echo("Back Z translation", z_translation);    
+   difference(){
+        dock_wall_base(width, height, depth);    
  
         //substract screw washer           
-        translate([special_x_translation, 0, DOCK_BACK_THICKNESS/2])
-        cylinder(DOCK_BACK_THICKNESS,washer_diameter/2,washer_diameter/2,true);             
+        translate([special_x_translation, 0, z_translation])
+        cylinder(DOCK_BACK_THICKNESS,washer_diameter/2,washer_diameter/2,true);       
         
-        translate([x_translation, y_translation, DOCK_BACK_THICKNESS/2])
-        cylinder(DOCK_BACK_THICKNESS,washer_diameter/2,washer_diameter/2,true);        
+        translate([x_translation, y_translation, z_translation])
+        cylinder(DOCK_BACK_THICKNESS,washer_diameter/2,washer_diameter/2,true);       
     
-        translate([-x_translation, y_translation, DOCK_BACK_THICKNESS/2])
-        cylinder(DOCK_BACK_THICKNESS,washer_diameter/2,washer_diameter/2,true);               
-        translate([x_translation, -y_translation, DOCK_BACK_THICKNESS/2])
-        cylinder(DOCK_BACK_THICKNESS,washer_diameter/2,washer_diameter/2,true);                           
-        translate([-x_translation, -y_translation, DOCK_BACK_THICKNESS/2])
-        cylinder(DOCK_BACK_THICKNESS,washer_diameter/2,washer_diameter/2,true);             
+        translate([-x_translation, y_translation, z_translation])
+        cylinder(DOCK_BACK_THICKNESS,washer_diameter/2,washer_diameter/2,true);       
+        translate([x_translation, -y_translation, z_translation])
+        cylinder(DOCK_BACK_THICKNESS,washer_diameter/2,washer_diameter/2,true);       
+       
+        translate([-x_translation, -y_translation, z_translation])
+        cylinder(DOCK_BACK_THICKNESS,washer_diameter/2,washer_diameter/2,true);       
     }    
 }
 
+module m3_hex_screw(thicnkess){
+        hexagon(SCREW_HEX_HEIGHT, thicnkess);    
+}
+
 module dock_front_wall(width, height, depth){
+    x_translate = width-CORNER_CURVE_DIAMETER;
+    y_translate = height-CORNER_CURVE_DIAMETER;
+        
+    //TODO: refactor these 
+    slot_diameter = SCREW_DIAMETER/2 + 1.0;
+    washer_diameter = SCREW_DIAMETER/2 + 4.0;
+    y_offset = max(DOCK_WALL_THICKNESS, DOCK_PROTECTOR_HEIGHT);    
+    x_translation = (width-DOCK_WALL_THICKNESS)/2 - slot_diameter - SCREW_WALL_DISTANCE;    
+    special_x_translation = x_translation - GOLDPIN_RASTER_EDGE_DISTANCE/2 - SCREW_DIAMETER/2;
+    y_translation = (height-y_offset)/2 - slot_diameter - SCREW_WALL_DISTANCE;      
+    
+    z_translation = 0.5;
+    
+    echo("Front Z translation", z_translation);
     intersection(){
         difference(){
-            dock_back_wall(width, height, depth);        
+            dock_wall_base(width, height, depth);        
 
             translate([(width-GOLDPIN_RASTER_EDGE_DISTANCE)/2,0,0])            
             rotate([0,0,90])
-            raster_n_pins(9);                 
+            raster_n_pins(9);
+    
+            //substract screw washer           
+            translate([special_x_translation, 0, z_translation])
+            m3_hex_screw(DOCK_FRONT_THICKNESS);            
+            
+            translate([x_translation, y_translation, z_translation])
+            m3_hex_screw(DOCK_FRONT_THICKNESS);            
+        
+            translate([-x_translation, y_translation, z_translation])
+            m3_hex_screw(DOCK_FRONT_THICKNESS);            
+            translate([x_translation, -y_translation, z_translation])
+            m3_hex_screw(DOCK_FRONT_THICKNESS);
+            
+            translate([-x_translation, -y_translation, z_translation])
+            m3_hex_screw(DOCK_FRONT_THICKNESS);            
         }    
         cube([width,height-DOCK_PROTECTOR_HEIGHT-TOLERANCE,10],true);
     }     
@@ -270,7 +342,7 @@ module goldpin_shelf(){
     pins = 9;
     
     shelf_thickness = GOLDPIN_SHELF_WALL_THICKNESS;
-    shelf_height = RASTER_SLOT_HEIGHT - LID_OFFSET - DOCK_BACK_THICKNESS + GOLDPIN_SHELF_BASE;
+    shelf_height = RASTER_SLOT_HEIGHT - LID_OFFSET - DOCK_FRONT_THICKNESS + GOLDPIN_SHELF_BASE;
 
     echo("**");    
     echo(shelf_height);
@@ -283,7 +355,7 @@ module goldpin_shelf(){
         cube([width,height,shelf_height],true);  
         color("red")
         raster_n_pins(pins);        
-    };            
+    };                        
 }
 
 module regulator_mini_shelf(){
@@ -379,7 +451,7 @@ module dock_rim_with_buttons(width, height, depth, wall_thickness, button_body_w
         screw_slot(depth, slot_diameter);      
         
         // Shelf
-        translate([(width-GOLDPIN_RASTER_EDGE_DISTANCE)/2,0, DOCK_BODY_DEPTH/2 - RASTER_SLOT_HEIGHT/2 + LID_OFFSET + DOCK_BACK_THICKNESS])
+        translate([(width-GOLDPIN_RASTER_EDGE_DISTANCE)/2,0, DOCK_BODY_DEPTH/2 - RASTER_SLOT_HEIGHT/2 + LID_OFFSET + DOCK_FRONT_THICKNESS])
         rotate([0,0,90])
         
         goldpin_shelf();
