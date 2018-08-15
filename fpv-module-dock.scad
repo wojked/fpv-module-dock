@@ -60,7 +60,7 @@ POLOLU_SCREW_DIAMETER = 2.27;
 MINIJACK_PORT_RADIUS = 7.1;
 
 /* [DC PORT SIZE] */
-DC_PORT_RADIUS = 7.6;  //11.5 body mounted
+DC_PORT_RADIUS = 7.8;  //11.5 body mounted
 
 /* [MOUNTING ELEMS] */
 SCREW_DIAMETER = 3; // M3 screw
@@ -232,7 +232,7 @@ module dock_front_wall(width, height, depth){
 
             translate([(width-GOLDPIN_RASTER_EDGE_DISTANCE)/2,0,0])            
             rotate([0,0,90])
-            raster_n_pins(9);
+            raster_n_pins_wider(9);
     
             //substract screw washer           
             translate([special_x_translation, 0, z_translation])
@@ -491,6 +491,18 @@ module raster_single_pin(){
 }
 
 module raster_n_pins(pins){
+    initial_offset = (pins-1)*RASTER_INTERPIN_DISTANCE;
+    
+    translate([-initial_offset/2,0,0])    
+    union(){            
+        for(n=[0:1:pins-1]){
+            translate([n*RASTER_INTERPIN_DISTANCE,0,0])
+            raster_single_pin();
+        }
+    }
+}
+
+module raster_n_pins_wider(pins){
     initial_offset = (pins-1)*RASTER_INTERPIN_DISTANCE;
     
     translate([-initial_offset/2,0,0])    
