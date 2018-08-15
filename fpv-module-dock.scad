@@ -4,7 +4,7 @@ DOCK_BODY_HEIGHT = 40;
 DOCK_BODY_WIDTH = 60;
 
 DOCK_BACK_THICKNESS = 6;
-DOCK_FRONT_THICKNESS = 2;
+DOCK_FRONT_THICKNESS = 2.5;
 DOCK_WALL_THICKNESS = 3.5;
 
 //Protector should be a part of the front cover - it will be easier to print per module
@@ -34,7 +34,7 @@ BUTTON_RAIL_HEIGHT = (DOCK_BODY_DEPTH - BUTTON_BOTTOM_HEIGHT)/2;
 BUTTON_RAIL_OFFSET = -(DOCK_BODY_DEPTH - BUTTON_RAIL_HEIGHT)/2;
 
 /* [GOLDPIN POSITION] */
-LID_OFFSET = 2.5;     // To be 2.27, safer to set 2.5
+LID_OFFSET = 2.0;     // To be 2.27, safer to set 2.5 and taken 0.5 to front wall
 GOLDPIN_RASTER_EDGE_DISTANCE = 25;
 
 /* [GOLDPIN SIZE] */
@@ -73,6 +73,9 @@ SCREW_HEX_THICKNESS = 2.42;
 
 /* [VENTS] */
 VENT_THICKNESS = 1.8;
+
+/* [PROTECTORS */
+PROTECTOR_WIDTH = 2;
 
 /* [MISC] */
 CORNER_CURVE_DIAMETER = 10;
@@ -211,6 +214,13 @@ module m3_hex_screw(thicnkess){
         hexagon(SCREW_HEX_HEIGHT, thicnkess);    
 }
 
+module curved_protector(){
+    //TODO
+//    middle_height = 17;
+//    translate([0,0,middle_height/2])
+//    cube([6,PROTECTOR_WIDTH,middle_height], true);
+}
+
 module dock_front_wall(width, height, depth){
     x_translate = width-CORNER_CURVE_DIAMETER;
     y_translate = height-CORNER_CURVE_DIAMETER;
@@ -226,31 +236,39 @@ module dock_front_wall(width, height, depth){
     z_translation = 0.5;
     
     echo("Front Z translation", z_translation);
-    intersection(){
-        difference(){
-            dock_wall_base(width, height, depth);        
-
-            translate([(width-GOLDPIN_RASTER_EDGE_DISTANCE)/2,0,0])            
-            rotate([0,0,90])
-            raster_n_pins_wider(9);
-    
-            //substract screw washer           
-            translate([special_x_translation, 0, z_translation])
-            m3_hex_screw(DOCK_FRONT_THICKNESS);            
-            
-            translate([x_translation, y_translation, z_translation])
-            m3_hex_screw(DOCK_FRONT_THICKNESS);            
+    union(){
+        translate([0,(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2,0])
+        curved_protector();
         
-            translate([-x_translation, y_translation, z_translation])
-            m3_hex_screw(DOCK_FRONT_THICKNESS);            
-            translate([x_translation, -y_translation, z_translation])
-            m3_hex_screw(DOCK_FRONT_THICKNESS);
+        translate([0,-(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2,0])
+        curved_protector();
+        
+        intersection(){
+            difference(){
+                dock_wall_base(width, height, depth);        
+
+                translate([(width-GOLDPIN_RASTER_EDGE_DISTANCE)/2,0,0])            
+                rotate([0,0,90])
+                raster_n_pins_wider(9);
+        
+                //substract screw washer           
+                translate([special_x_translation, 0, z_translation])
+                m3_hex_screw(DOCK_FRONT_THICKNESS);            
+                
+                translate([x_translation, y_translation, z_translation])
+                m3_hex_screw(DOCK_FRONT_THICKNESS);            
             
-            translate([-x_translation, -y_translation, z_translation])
-            m3_hex_screw(DOCK_FRONT_THICKNESS);            
-        }    
-        cube([width,height-DOCK_PROTECTOR_HEIGHT-TOLERANCE,10],true);
-    }     
+                translate([-x_translation, y_translation, z_translation])
+                m3_hex_screw(DOCK_FRONT_THICKNESS);            
+                translate([x_translation, -y_translation, z_translation])
+                m3_hex_screw(DOCK_FRONT_THICKNESS);
+                
+                translate([-x_translation, -y_translation, z_translation])
+                m3_hex_screw(DOCK_FRONT_THICKNESS);            
+            }    
+            cube([width,height-DOCK_PROTECTOR_HEIGHT-TOLERANCE,10],true);
+        }  
+    }   
 }
 
 module screw_slot(height, diameter) {
