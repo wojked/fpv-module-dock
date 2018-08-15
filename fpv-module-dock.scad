@@ -495,10 +495,18 @@ module raster_n_pins(pins){
     
     translate([-initial_offset/2,0,0])    
     union(){            
+        // Edge margin
+        translate([-1,0,0])        
+        raster_single_pin();
+        
         for(n=[0:1:pins-1]){
             translate([n*RASTER_INTERPIN_DISTANCE,0,0])
             raster_single_pin();
         }
+
+        // Edge margin        
+        translate([(pins-1)*RASTER_INTERPIN_DISTANCE+1,0,0])
+        raster_single_pin();
     }
 }
 
