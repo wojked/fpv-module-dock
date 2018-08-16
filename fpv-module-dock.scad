@@ -76,6 +76,9 @@ VENT_THICKNESS = 1.8;
 
 /* [PROTECTORS */
 PROTECTOR_WIDTH = 2;
+PROTECTOR_Z_OFFSET = 3.33;
+PROTECTOR_Y_OFFSET = 4.30;
+PROTECTOR_Y_OFFSET_TOP = 1;
 
 /* [MISC] */
 CORNER_CURVE_DIAMETER = 10;
@@ -88,17 +91,18 @@ DELTA = 0.001; // used for non-perfect diffs
 $fn = 128;
 
 //color("grey")
-dock_rim_with_buttons(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT, DOCK_BODY_DEPTH, DOCK_WALL_THICKNESS, BUTTON_BOTTOM_WIDTH, BUTTON_BOTTOM_DISTANCE, NUT_HOLDER_WALL_THICKNESS, NUT_HOLDER_BASE_THICKNESS);
+//dock_rim_with_buttons(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT, DOCK_BODY_DEPTH, DOCK_WALL_THICKNESS, BUTTON_BOTTOM_WIDTH, BUTTON_BOTTOM_DISTANCE, NUT_HOLDER_WALL_THICKNESS, NUT_HOLDER_BASE_THICKNESS);
+//
+//color("red")
+//translate([0,0,(-DOCK_BODY_DEPTH-DOCK_BACK_THICKNESS)/2- EXPLODE_OFFSET])
+//rotate([180,0,0])
+//dock_back_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
 
-color("red")
-translate([0,0,(-DOCK_BODY_DEPTH-DOCK_BACK_THICKNESS)/2- EXPLODE_OFFSET])
-rotate([180,0,0])
-dock_back_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
-
-color("red")
-translate([0,0,(+DOCK_BODY_DEPTH+DOCK_FRONT_THICKNESS)/2 + EXPLODE_OFFSET ])
+//color("red")
+//translate([0,0,(+DOCK_BODY_DEPTH+DOCK_FRONT_THICKNESS)/2 + EXPLODE_OFFSET ])
 dock_front_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_FRONT_THICKNESS);
 
+//curved_protector();
 
 module dock_body(width, height, depth) {
     x_translate = width-CORNER_CURVE_DIAMETER;
@@ -214,11 +218,41 @@ module m3_hex_screw(thicnkess){
         hexagon(SCREW_HEX_HEIGHT, thicnkess);    
 }
 
+module protector_inkscape(h)
+{
+  SCALE = 3.58;
+  fudge = 0.1;
+  scale([SCALE,SCALE,1])
+    scale([25.4/90, -25.4/90, 1]) union()
+  {
+    difference()
+    {
+       linear_extrude(height=h)
+         polygon([[-23.937100,-4.840512],[-23.986770,5.967508],[23.986769,5.967508],[19.119586,2.504936],[14.069221,-0.396163],[8.766792,-2.714874],[3.143421,-4.430280],[-2.869774,-5.521463],[-9.341672,-5.967508],[-16.341154,-5.747496],[-23.937100,-4.840512]]);
+       translate([0, 0, -fudge])
+         linear_extrude(height=h+2*fudge)
+           polygon([[-18.048985,-3.485942],[-13.419339,-3.485942],[-13.419339,-1.573382],[-18.048985,-1.573382]]);
+       translate([0, 0, -fudge])
+         linear_extrude(height=h+2*fudge)
+           polygon([[8.586939,0.978958],[13.216586,0.978958],[13.216586,2.762028],[8.586939,2.762028]]);
+    }
+  }
+}   
+
 module curved_protector(){
-    //TODO
-//    middle_height = 17;
-//    translate([0,0,middle_height/2])
-//    cube([6,PROTECTOR_WIDTH,middle_height], true);
+    z_offset = -5-2.65;    
+    
+    translate([0,0,10])    
+    rotate([90,0,0])
+    
+    intersection(){
+        union(){
+                translate([0,z_offset,1/2])
+                cube([50,PROTECTOR_Z_OFFSET,1], true);
+                protector_inkscape(1);
+        };
+        cube([44,30,3], true);           
+    } 
 }
 
 module dock_front_wall(width, height, depth){
@@ -237,10 +271,10 @@ module dock_front_wall(width, height, depth){
     
     echo("Front Z translation", z_translation);
     union(){
-        translate([0,(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2,0])
+        translate([0,(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2-PROTECTOR_Y_OFFSET_TOP,0])
         curved_protector();
         
-        translate([0,-(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2,0])
+        translate([0,-(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2+PROTECTOR_Y_OFFSET,0])
         curved_protector();
         
         intersection(){
