@@ -74,11 +74,16 @@ SCREW_HEX_THICKNESS = 2.42;
 /* [VENTS] */
 VENT_THICKNESS = 1.8;
 
-/* [PROTECTORS */
-PROTECTOR_WIDTH = 2;
-PROTECTOR_Z_OFFSET = 3.33;
-PROTECTOR_Y_OFFSET = 4.30;
-PROTECTOR_Y_OFFSET_TOP = 1;
+/* [PROTECTORS] */
+PROTECTOR_WIDTH = 3.0;
+PROTECTOR_Z_OFFSET = 3.33 + 2.3;
+PROTECTOR_Y_OFFSET = 4.0;
+PROTECTOR_Y_OFFSET_TOP = -0.5;
+STABILISER_THICKNESS = 3;
+STABILISER_HEIGHT = 4.44;
+STABILISER_WIDTH = 9.0;
+RIGHT_COVER_HEIGHT = 4.70;
+RIGHT_COVER_WIDTH = 15;
 
 /* [MISC] */
 CORNER_CURVE_DIAMETER = 10;
@@ -218,41 +223,56 @@ module m3_hex_screw(thicnkess){
         hexagon(SCREW_HEX_HEIGHT, thicnkess);    
 }
 
+module poly_rect9473(h)
+{
+  scale([25.4/90, -25.4/90, 1]) union()
+  {
+    difference()
+    {
+       linear_extrude(height=h)
+         polygon([[-24.172366,-2.556547],[-24.053693,5.052953],[24.172365,4.968753],[19.041978,1.574736],[13.348651,-1.130563],[7.243469,-3.141025],[0.877514,-4.450528],[-5.598130,-5.052953],[-12.032380,-4.942178],[-18.274153,-4.112083],[-24.172366,-2.556547]]);
+       translate([0, 0, -fudge])
+         linear_extrude(height=h+2*fudge)
+           polygon([[-18.031737,-2.380387],[-13.402091,-2.380387],[-13.402091,-0.467827],[-18.031737,-0.467827]]);
+       translate([0, 0, -fudge])
+         linear_extrude(height=h+2*fudge)
+           polygon([[8.604184,1.326973],[13.402175,1.326973],[13.402175,3.362553],[8.604184,3.362553]]);
+    }
+  }
+}
+
 module protector_inkscape(h)
 {
   SCALE = 3.58;
   fudge = 0.1;
   scale([SCALE,SCALE,1])
-    scale([25.4/90, -25.4/90, 1]) union()
-  {
-    difference()
-    {
-       linear_extrude(height=h)
-         polygon([[-23.937100,-4.840512],[-23.986770,5.967508],[23.986769,5.967508],[19.119586,2.504936],[14.069221,-0.396163],[8.766792,-2.714874],[3.143421,-4.430280],[-2.869774,-5.521463],[-9.341672,-5.967508],[-16.341154,-5.747496],[-23.937100,-4.840512]]);
-       translate([0, 0, -fudge])
-         linear_extrude(height=h+2*fudge)
-           polygon([[-18.048985,-3.485942],[-13.419339,-3.485942],[-13.419339,-1.573382],[-18.048985,-1.573382]]);
-       translate([0, 0, -fudge])
-         linear_extrude(height=h+2*fudge)
-           polygon([[8.586939,0.978958],[13.216586,0.978958],[13.216586,2.762028],[8.586939,2.762028]]);
-    }
-  }
+  poly_rect9473(h);
 }   
 
 module curved_protector(){
-    z_offset = -5-2.65;    
+    thickness = PROTECTOR_WIDTH;    
+    z_offset = -4.0-2.65;    
+    y_offset = thickness/2;
     
-    translate([0,0,10])    
+    translate([0,0,10.65])    
     rotate([90,0,0])
     
     intersection(){
         union(){
-                translate([0,z_offset,1/2])
-                cube([50,PROTECTOR_Z_OFFSET,1], true);
-                protector_inkscape(1);
+                translate([0,z_offset,y_offset])
+                cube([50,PROTECTOR_Z_OFFSET,thickness], true);
+                protector_inkscape(thickness);
         };
-        cube([44,30,3], true);           
+        cube([44,30,20], true);         
     } 
+}
+
+module module_stabiliser(){
+    cube([STABILISER_THICKNESS,STABILISER_WIDTH,STABILISER_HEIGHT], true);
+}
+
+module right_cover(){
+    cube([STABILISER_THICKNESS,RIGHT_COVER_WIDTH,RIGHT_COVER_HEIGHT], true);    
 }
 
 module dock_front_wall(width, height, depth){
@@ -276,6 +296,12 @@ module dock_front_wall(width, height, depth){
         
         translate([0,-(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2+PROTECTOR_Y_OFFSET,0])
         curved_protector();
+
+        translate([-22,0,(DOCK_FRONT_THICKNESS+STABILISER_HEIGHT)/2])        
+        module_stabiliser();
+        
+        translate([22,0,(DOCK_FRONT_THICKNESS+STABILISER_HEIGHT)/2])        
+        right_cover();        
         
         intersection(){
             difference(){
