@@ -75,15 +75,17 @@ SCREW_HEX_THICKNESS = 2.42;
 VENT_THICKNESS = 1.8;
 
 /* [PROTECTORS] */
-PROTECTOR_WIDTH = 2.0;
-PROTECTOR_Z_OFFSET = 3.33 + 2.3;
-PROTECTOR_Y_OFFSET = 3.0;
+PROTECTOR_WIDTH = 2.4;
+PROTECTOR_Z_OFFSET = 3.33 + 1.0;
+PROTECTOR_Y_OFFSET = 4.5;
 PROTECTOR_Y_OFFSET_TOP = -1.0;
+PROTECTOR_STABILISER_WIDTH = 2;
+PROTECTOR_STABILISER_HEIGHT = 4;
 STABILISER_THICKNESS = 3;
 STABILISER_HEIGHT = 4.44;
 STABILISER_WIDTH = 9.0;
-RIGHT_COVER_HEIGHT = 5.70;
-RIGHT_COVER_WIDTH = 15;
+RIGHT_COVER_HEIGHT = 3.50;
+RIGHT_COVER_WIDTH = 12;
 
 /* [MISC] */
 CORNER_CURVE_DIAMETER = 10;
@@ -254,7 +256,7 @@ module curved_protector(){
     z_offset = -4.0-2.65;    
     y_offset = thickness/2;
     
-    translate([0,0,10.65])    
+    translate([0,0,5.29+PROTECTOR_Z_OFFSET])    
     rotate([90,0,0])
     
     intersection(){
@@ -265,6 +267,20 @@ module curved_protector(){
         };
         cube([44,30,20], true);         
     } 
+}
+
+module protector_stabiliser(){
+    difference(){        
+        cube([3,PROTECTOR_STABILISER_WIDTH,PROTECTOR_STABILISER_HEIGHT], true);       
+        
+        rotate([30,0,0])    
+        translate([0,1.8,0])
+        cube([4,2*PROTECTOR_STABILISER_WIDTH,PROTECTOR_STABILISER_HEIGHT*2], true);        
+    }
+//    color("red")
+//    rotate([30,0,0])    
+//    translate([0,2,0])
+//    cube([4,2*PROTECTOR_STABILISER_WIDTH,PROTECTOR_STABILISER_HEIGHT*2], true);
 }
 
 module module_stabiliser(){
@@ -297,10 +313,30 @@ module dock_front_wall(width, height, depth){
         translate([0,-(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2+PROTECTOR_Y_OFFSET,0])
         curved_protector();
 
+        translate([12,(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2-PROTECTOR_Y_OFFSET_TOP-3.3,(DOCK_FRONT_THICKNESS+PROTECTOR_STABILISER_HEIGHT)/2])
+        rotate([0,0,180])
+        protector_stabiliser();    
+        
+        translate([-3,(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2-PROTECTOR_Y_OFFSET_TOP-3.3,(DOCK_FRONT_THICKNESS+PROTECTOR_STABILISER_HEIGHT)/2])
+        rotate([0,0,180])
+        protector_stabiliser();         
+    
+        translate([-15,(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2-PROTECTOR_Y_OFFSET_TOP-3.3,(DOCK_FRONT_THICKNESS+PROTECTOR_STABILISER_HEIGHT)/2])
+        rotate([0,0,180])        
+        protector_stabiliser();          
+
+        translate([12,-(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2+PROTECTOR_Y_OFFSET+PROTECTOR_STABILISER_WIDTH/2,(DOCK_FRONT_THICKNESS+PROTECTOR_STABILISER_HEIGHT)/2])
+        protector_stabiliser();
+        
+        translate([-3,-(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2+PROTECTOR_Y_OFFSET+PROTECTOR_STABILISER_WIDTH/2,(DOCK_FRONT_THICKNESS+PROTECTOR_STABILISER_HEIGHT)/2])
+        protector_stabiliser();        
+        
+        translate([-15,-(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2+PROTECTOR_Y_OFFSET+PROTECTOR_STABILISER_WIDTH/2,(DOCK_FRONT_THICKNESS+PROTECTOR_STABILISER_HEIGHT)/2])
+        protector_stabiliser();        
+
         translate([-22,0,(DOCK_FRONT_THICKNESS+STABILISER_HEIGHT)/2])        
         module_stabiliser();
-        
-        translate([22,0,(DOCK_FRONT_THICKNESS+STABILISER_HEIGHT)/2])        
+        translate([24,0,(DOCK_FRONT_THICKNESS+RIGHT_COVER_HEIGHT)/2])        
         right_cover();        
         
         intersection(){
