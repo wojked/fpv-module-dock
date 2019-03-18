@@ -47,5 +47,3 @@ When fully assembled, it should be compete with the retail products as:
 # Please feel free to propose improvements
 https://github.com/wojked/fpv-module-dock
 
-
-https://www.thingiverse.com/thing:3500798
