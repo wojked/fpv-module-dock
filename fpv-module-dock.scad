@@ -75,6 +75,9 @@ SCREW_HEX_THICKNESS = 2.42;
 VENT_THICKNESS = 1.8;
 
 /* [PROTECTORS] */
+PRO58 = 0;
+RAPIDFIRE = 1;
+FRONT_TYPE = RAPIDFIRE;
 PROTECTOR_WIDTH = 2.0;
 PROTECTOR_Z_OFFSET = 3.33 + 0.4;
 PROTECTOR_Y_OFFSET = 4.7;
@@ -90,25 +93,41 @@ RIGHT_COVER_WIDTH = 10;
 /* [MISC] */
 CORNER_CURVE_DIAMETER = 10;
 TOLERANCE = 0.05;
-EXPLODE_OFFSET = 20;  
+EXPLODE_OFFSET = 10;  
 
 DELTA = 0.001; // used for non-perfect diffs
 
 /* [HIDDEN] */
+FULL = false;
 $fn = 128;
 fudge = 0.1;
 
-color("grey")
-dock_rim_with_buttons(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT, DOCK_BODY_DEPTH, DOCK_WALL_THICKNESS, BUTTON_BOTTOM_WIDTH, BUTTON_BOTTOM_DISTANCE, NUT_HOLDER_WALL_THICKNESS, NUT_HOLDER_BASE_THICKNESS);
-//
-//color("red")
-translate([0,0,(-DOCK_BODY_DEPTH-DOCK_BACK_THICKNESS)/2- EXPLODE_OFFSET])
-rotate([180,0,0])
-dock_back_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
+if(FULL){
+    color("grey")
+    dock_rim_with_buttons(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT, DOCK_BODY_DEPTH, DOCK_WALL_THICKNESS, BUTTON_BOTTOM_WIDTH, BUTTON_BOTTOM_DISTANCE, NUT_HOLDER_WALL_THICKNESS, NUT_HOLDER_BASE_THICKNESS);
+    //
+    //color("red")
+    translate([0,0,(-DOCK_BODY_DEPTH-DOCK_BACK_THICKNESS)/2- EXPLODE_OFFSET])
+    rotate([180,0,0])
+    dock_back_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_BACK_THICKNESS);
 
-//color("red")
-translate([0,0,(+DOCK_BODY_DEPTH+DOCK_FRONT_THICKNESS)/2 + EXPLODE_OFFSET ])
-dock_front_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_FRONT_THICKNESS);
+    if(FRONT_TYPE==PRO58){
+        //color("red")    
+        translate([0,0,(+DOCK_BODY_DEPTH+DOCK_FRONT_THICKNESS)/2 + EXPLODE_OFFSET ])    
+        dock_front_wall(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_FRONT_THICKNESS);
+    }
+
+    if(FRONT_TYPE==RAPIDFIRE){
+        //color("red")    
+        translate([0,0,(+DOCK_BODY_DEPTH+DOCK_FRONT_THICKNESS)/2 + EXPLODE_OFFSET ])    
+        dock_front_wall_rapidfire(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_FRONT_THICKNESS);
+    }
+}
+else 
+{
+    translate([0,0,DOCK_FRONT_THICKNESS/2])
+    dock_front_wall_rapidfire(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_FRONT_THICKNESS);
+}
 
 //curved_protector();
 
@@ -367,6 +386,93 @@ module dock_front_wall(width, height, depth){
     }   
 }
 
+module dock_front_wall_rapidfire(width, height, depth){
+    module dock_front_wall(){
+        x_translate = width-CORNER_CURVE_DIAMETER;
+        y_translate = height-CORNER_CURVE_DIAMETER;
+            
+        //TODO: refactor these 
+        slot_diameter = SCREW_DIAMETER/2 + 1.0;
+        washer_diameter = SCREW_DIAMETER/2 + 4.0;
+        y_offset = max(DOCK_WALL_THICKNESS, DOCK_PROTECTOR_HEIGHT);    
+        x_translation = (width-DOCK_WALL_THICKNESS)/2 - slot_diameter - SCREW_WALL_DISTANCE;    
+        special_x_translation = x_translation - GOLDPIN_RASTER_EDGE_DISTANCE/2 - SCREW_DIAMETER/2;
+        y_translation = (height-y_offset)/2 - slot_diameter - SCREW_WALL_DISTANCE;      
+        
+        z_translation = 0.5;
+        
+        echo("Front Z translation", z_translation);
+        union(){
+            translate([0,(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2-PROTECTOR_Y_OFFSET_TOP,0])
+            curved_protector();
+            
+            translate([0,-(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2+PROTECTOR_Y_OFFSET,0])
+            curved_protector();
+
+            translate([12,(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2-PROTECTOR_Y_OFFSET_TOP-3.3,(DOCK_FRONT_THICKNESS+PROTECTOR_STABILISER_HEIGHT)/2])
+            rotate([0,0,180])
+            protector_stabiliser();    
+            
+            translate([-3,(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2-PROTECTOR_Y_OFFSET_TOP-3.3,(DOCK_FRONT_THICKNESS+PROTECTOR_STABILISER_HEIGHT)/2])
+            rotate([0,0,180])
+            protector_stabiliser();         
+        
+            translate([-15,(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2-PROTECTOR_Y_OFFSET_TOP-3.3,(DOCK_FRONT_THICKNESS+PROTECTOR_STABILISER_HEIGHT)/2])
+            rotate([0,0,180])        
+            protector_stabiliser();          
+
+            translate([12,-(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2+PROTECTOR_Y_OFFSET+PROTECTOR_STABILISER_WIDTH/2,(DOCK_FRONT_THICKNESS+PROTECTOR_STABILISER_HEIGHT)/2])
+            protector_stabiliser();
+            
+            translate([-3,-(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2+PROTECTOR_Y_OFFSET+PROTECTOR_STABILISER_WIDTH/2,(DOCK_FRONT_THICKNESS+PROTECTOR_STABILISER_HEIGHT)/2])
+            protector_stabiliser();        
+            
+            translate([-15,-(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2+PROTECTOR_Y_OFFSET+PROTECTOR_STABILISER_WIDTH/2,(DOCK_FRONT_THICKNESS+PROTECTOR_STABILISER_HEIGHT)/2])
+            protector_stabiliser();        
+
+            translate([-22,0,(DOCK_FRONT_THICKNESS+STABILISER_HEIGHT)/2])        
+            module_stabiliser();
+            translate([24,0,(DOCK_FRONT_THICKNESS+RIGHT_COVER_HEIGHT)/2])        
+            right_cover();        
+            
+            intersection(){
+                difference(){
+                    dock_wall_base(width, height, depth);        
+
+                    translate([(width-GOLDPIN_RASTER_EDGE_DISTANCE)/2,0,0])            
+                    rotate([0,0,90])
+                    raster_n_pins_wider(9);
+            
+                    //substract screw washer           
+                    translate([special_x_translation, 0, z_translation])
+                    m3_hex_screw(DOCK_FRONT_THICKNESS);            
+                    
+                    translate([x_translation, y_translation, z_translation])
+                    m3_hex_screw(DOCK_FRONT_THICKNESS);            
+                
+                    translate([-x_translation, y_translation, z_translation])
+                    m3_hex_screw(DOCK_FRONT_THICKNESS);            
+                    translate([x_translation, -y_translation, z_translation])
+                    m3_hex_screw(DOCK_FRONT_THICKNESS);
+                    
+                    translate([-x_translation, -y_translation, z_translation])
+                    m3_hex_screw(DOCK_FRONT_THICKNESS);            
+                }    
+                cube([width,height-DOCK_PROTECTOR_HEIGHT-TOLERANCE,10],true);
+            }  
+        }   
+    }
+    module slide_in_slot(){
+        color("black")
+        cube([20,20,40]);
+    }    
+
+    slide_in_slot();
+    // Sliding in slots    
+    
+    dock_front_wall();
+}
+
 module screw_slot(height, diameter) {
     difference(){
         cube([2*diameter,2*diameter, height], true);              
@@ -381,7 +487,7 @@ module dock_rim(width, height, depth, wall_thickness) {
     
     difference(){
         dock_body(width, height, depth);
-        dock_body(width-wall_thickness, height-wall_thickness, 2*depth, scaled_curve);
+        dock_body(width-wall_thickness, height-wall_thickness, 2*depth);
     };
     
     translate([0,0,DOCK_PROTECTOR_DEPTH/2])
