@@ -80,8 +80,15 @@ RAPIDFIRE = 1;
 FRONT_TYPE = RAPIDFIRE;
 PROTECTOR_WIDTH = 2.0;
 PROTECTOR_Z_OFFSET = 3.33 + 0.4;
-PROTECTOR_Y_OFFSET = 4.7;
-PROTECTOR_Y_OFFSET_TOP = -1.0;
+MATH_PROTECTOR_Z_OFFSET = 0;
+
+//NEW
+PROTECTOR_Y_OFFSET_GLOBAL = -1.7;
+//NEW
+PROTECTOR_Y_DISTANCE_REDUCTION = 1.7;
+
+PROTECTOR_Y_OFFSET = 4.7 + PROTECTOR_Y_OFFSET_GLOBAL/2 + PROTECTOR_Y_DISTANCE_REDUCTION/2;
+PROTECTOR_Y_OFFSET_TOP = -1.0 - PROTECTOR_Y_OFFSET_GLOBAL/2 + PROTECTOR_Y_DISTANCE_REDUCTION/2;
 PROTECTOR_STABILISER_WIDTH = 2;
 PROTECTOR_STABILISER_HEIGHT = 4;
 STABILISER_THICKNESS = 3;
@@ -94,6 +101,8 @@ RIGHT_COVER_WIDTH = 10;
 CORNER_CURVE_DIAMETER = 10;
 TOLERANCE = 0.05;
 EXPLODE_OFFSET = 10;  
+EXPERIMENT = true;
+DEBUG = false;
 
 DELTA = 0.001; // used for non-perfect diffs
 
@@ -125,11 +134,30 @@ if(FULL){
 }
 else 
 {
-    translate([0,0,DOCK_FRONT_THICKNESS/2])
-    dock_front_wall_rapidfire(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_FRONT_THICKNESS);
+    intersection(){
+        translate([0,0,DOCK_FRONT_THICKNESS/2])
+        dock_front_wall_rapidfire(DOCK_BODY_WIDTH, DOCK_BODY_HEIGHT,  DOCK_FRONT_THICKNESS);
+        if(EXPERIMENT){
+        experiment_box();
+        }
+    }
+    if(DEBUG){
+        experiment_box();
+    }
 }
 
-//curved_protector();
+
+module experiment_box(){
+    thickness = 20;
+    width = 31;
+    height = 34;
+    x_offset = -3;
+    y_offset = 1;
+    z_offset = 1.5;
+    color("green", 0.25)
+    translate([x_offset, y_offset, thickness/2 + z_offset])
+    cube([width, height, thickness], true);
+}
 
 module dock_body(width, height, depth) {
     x_translate = width-CORNER_CURVE_DIAMETER;
@@ -386,6 +414,26 @@ module dock_front_wall(width, height, depth){
     }   
 }
 
+module curved_protector_math(){
+    width = 44;
+    height = PROTECTOR_WIDTH;
+    thickness = 20;
+    
+    radius = 70;    
+    x_offset = -10;
+    y_offset = 0;
+    z_offset = 17;    
+    
+    intersection(){
+        translate([0,-height/2,thickness/2])
+        cube([width, height, thickness], true);
+
+        translate([x_offset, y_offset, -radius + z_offset])    
+        rotate([90,0,0])
+        cylinder(40, radius, radius, true);
+    }
+}
+
 module dock_front_wall_rapidfire(width, height, depth){
     module dock_front_wall(){
         x_translate = width-CORNER_CURVE_DIAMETER;
@@ -401,13 +449,18 @@ module dock_front_wall_rapidfire(width, height, depth){
         
         z_translation = 0.5;
         
+        PROTECTOR_Z_OFFSET = 3;
+        
         echo("Front Z translation", z_translation);
         union(){
-            translate([0,(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2-PROTECTOR_Y_OFFSET_TOP,0])
-            curved_protector();
+//            translate([0,(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2-PROTECTOR_Y_OFFSET_TOP,PROTECTOR_Z_OFFSET])
+//            curved_protector();            
             
-            translate([0,-(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2+PROTECTOR_Y_OFFSET,0])
-            curved_protector();
+            translate([0,(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2-PROTECTOR_Y_OFFSET_TOP,MATH_PROTECTOR_Z_OFFSET])
+            curved_protector_math();
+            
+            translate([0,-(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2+PROTECTOR_Y_OFFSET,MATH_PROTECTOR_Z_OFFSET])
+            curved_protector_math();        
 
             translate([12,(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2-PROTECTOR_Y_OFFSET_TOP-3.3,(DOCK_FRONT_THICKNESS+PROTECTOR_STABILISER_HEIGHT)/2])
             rotate([0,0,180])
@@ -430,10 +483,8 @@ module dock_front_wall_rapidfire(width, height, depth){
             translate([-15,-(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2+PROTECTOR_Y_OFFSET+PROTECTOR_STABILISER_WIDTH/2,(DOCK_FRONT_THICKNESS+PROTECTOR_STABILISER_HEIGHT)/2])
             protector_stabiliser();        
 
-            translate([-22,0,(DOCK_FRONT_THICKNESS+STABILISER_HEIGHT)/2])        
-            module_stabiliser();
-            translate([24,0,(DOCK_FRONT_THICKNESS+RIGHT_COVER_HEIGHT)/2])        
-            right_cover();        
+            translate([-22,9,(DOCK_FRONT_THICKNESS+STABILISER_HEIGHT)/2])        
+            module_stabiliser();                   
             
             intersection(){
                 difference(){
@@ -461,16 +512,57 @@ module dock_front_wall_rapidfire(width, height, depth){
                 cube([width,height-DOCK_PROTECTOR_HEIGHT-TOLERANCE,10],true);
             }  
         }   
-    }
-    module slide_in_slot(){
-        color("black")
-        cube([20,20,40]);
-    }    
+    }   
 
-    slide_in_slot();
-    // Sliding in slots    
+    module single_negative_slide_in_with_spacer(){
+        slide_thickness = 6;  //7.1
+        width = 1.2;   //1.07
+        spacer = 1.15;  //1.12
+        combined_width = 6.4;
+        
+        height_without_slides = 31.02;
+        height_with_slides = 32.71;
+        
+        x_offset = -3;
+        y_offset = 1;
+        z_offset = 0;
+        
+        translate([x_offset, y_offset, slide_thickness/2 + z_offset])        
+        union(){
+            color("red", 0.5)
+            translate([-(width+spacer)/2,0,0])
+            cube([width, height_with_slides, slide_thickness], true);
+
+            color("red", 0.5)            
+            translate([(width+spacer)/2,0,0])            
+            cube([width, height_with_slides, slide_thickness], true);
+            
+//            //wall_limits
+//            color("black", 1)            
+//            translate([0,0,0])            
+//            cube([combined_width, height_without_slides, slide_thickness], true);
+        }        
+    }
+
+    module two_negative_slides_in(){
+        z_offset = 9.2;
+        //one side slide
+        translate([-13, 0, z_offset + 1.8])            //12
+        single_negative_slide_in_with_spacer();
+        
+        // second side slide
+        translate([13, 0, z_offset])              //8
+        single_negative_slide_in_with_spacer();            
+    }
+
+//    two_negative_slides_in();
+//    color("yellow", 0.5)    
+//    dock_front_wall();
     
-    dock_front_wall();
+    difference(){
+        dock_front_wall();
+        two_negative_slides_in();        
+    }
 }
 
 module screw_slot(height, diameter) {
