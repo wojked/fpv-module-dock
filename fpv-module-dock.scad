@@ -83,9 +83,9 @@ PROTECTOR_Z_OFFSET = 3.33 + 0.4;
 MATH_PROTECTOR_Z_OFFSET = 0;
 
 //NEW
-PROTECTOR_Y_OFFSET_GLOBAL = -1.7;
+PROTECTOR_Y_OFFSET_GLOBAL = 1; //-1.7 [+2.7]
 //NEW
-PROTECTOR_Y_DISTANCE_REDUCTION = 1.7;
+PROTECTOR_Y_DISTANCE_REDUCTION = 0.5;
 
 PROTECTOR_Y_OFFSET = 4.7 + PROTECTOR_Y_OFFSET_GLOBAL/2 + PROTECTOR_Y_DISTANCE_REDUCTION/2;
 PROTECTOR_Y_OFFSET_TOP = -1.0 - PROTECTOR_Y_OFFSET_GLOBAL/2 + PROTECTOR_Y_DISTANCE_REDUCTION/2;
@@ -101,7 +101,7 @@ RIGHT_COVER_WIDTH = 10;
 CORNER_CURVE_DIAMETER = 10;
 TOLERANCE = 0.05;
 EXPLODE_OFFSET = 10;  
-EXPERIMENT = true;
+EXPERIMENT = false;
 DEBUG = false;
 
 DELTA = 0.001; // used for non-perfect diffs
@@ -149,10 +149,10 @@ else
 
 module experiment_box(){
     thickness = 20;
-    width = 31;
-    height = 34;
+    width = 32;
+    height = 36;
     x_offset = -3;
-    y_offset = 1;
+    y_offset = 1;   //1
     z_offset = 1.5;
     color("green", 0.25)
     translate([x_offset, y_offset, thickness/2 + z_offset])
@@ -450,6 +450,7 @@ module dock_front_wall_rapidfire(width, height, depth){
         z_translation = 0.5;
         
         PROTECTOR_Z_OFFSET = 3;
+        STABILISER_OFFSET = 3.0;
         
         echo("Front Z translation", z_translation);
         union(){
@@ -462,15 +463,15 @@ module dock_front_wall_rapidfire(width, height, depth){
             translate([0,-(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2+PROTECTOR_Y_OFFSET,MATH_PROTECTOR_Z_OFFSET])
             curved_protector_math();        
 
-            translate([12,(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2-PROTECTOR_Y_OFFSET_TOP-3.3,(DOCK_FRONT_THICKNESS+PROTECTOR_STABILISER_HEIGHT)/2])
+            translate([12,(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2-PROTECTOR_Y_OFFSET_TOP-STABILISER_OFFSET,(DOCK_FRONT_THICKNESS+PROTECTOR_STABILISER_HEIGHT)/2])
             rotate([0,0,180])
             protector_stabiliser();    
             
-            translate([-3,(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2-PROTECTOR_Y_OFFSET_TOP-3.3,(DOCK_FRONT_THICKNESS+PROTECTOR_STABILISER_HEIGHT)/2])
+            translate([-3,(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2-PROTECTOR_Y_OFFSET_TOP-STABILISER_OFFSET,(DOCK_FRONT_THICKNESS+PROTECTOR_STABILISER_HEIGHT)/2])
             rotate([0,0,180])
             protector_stabiliser();         
         
-            translate([-15,(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2-PROTECTOR_Y_OFFSET_TOP-3.3,(DOCK_FRONT_THICKNESS+PROTECTOR_STABILISER_HEIGHT)/2])
+            translate([-15,(DOCK_BODY_HEIGHT-PROTECTOR_WIDTH)/2-PROTECTOR_Y_OFFSET_TOP-STABILISER_OFFSET,(DOCK_FRONT_THICKNESS+PROTECTOR_STABILISER_HEIGHT)/2])
             rotate([0,0,180])        
             protector_stabiliser();          
 
@@ -544,6 +545,34 @@ module dock_front_wall_rapidfire(width, height, depth){
         }        
     }
 
+    module single_negative_slide_in_with_spacer_larger(){
+        slide_thickness = 6;  //7.1
+        width = 1.2;   //1.07 --?1.2
+        spacer = 1.15;  //1.12
+        combined_width = width*2+spacer;
+        
+        height_without_slides = 31.02;
+        height_with_slides = 32.71 + 8;
+        
+        x_offset = -3;
+        y_offset = 1;
+        z_offset = 0;
+        
+        translate([x_offset, y_offset, slide_thickness/2 + z_offset])        
+        union(){
+//            color("red", 0.5)
+//            translate([-(width+spacer)/2,0,0])
+//            cube([width, height_with_slides, slide_thickness], true);
+//
+//            color("red", 0.5)            
+//            translate([(width+spacer)/2,0,0])            
+//            cube([width, height_with_slides, slide_thickness], true);
+            
+            translate([0,0,0])            
+            cube([combined_width, height_with_slides, slide_thickness], true);            
+        }        
+    }
+
     module two_negative_slides_in(){
         z_offset = 9.2;
         //one side slide
@@ -554,14 +583,26 @@ module dock_front_wall_rapidfire(width, height, depth){
         translate([13, 0, z_offset])              //8
         single_negative_slide_in_with_spacer();            
     }
+    
+    module two_negative_slides_in_larger(){
+        z_offset = 12;
+        //one side slide
+        translate([-13, 0, z_offset + 1.8])            //12
+        single_negative_slide_in_with_spacer_larger();
+        
+        // second side slide
+        translate([13, 0, z_offset])              //8
+        single_negative_slide_in_with_spacer_larger();            
+    }
 
-//    two_negative_slides_in();
+//    two_negative_slides_in_larger();
 //    color("yellow", 0.5)    
 //    dock_front_wall();
     
     difference(){
         dock_front_wall();
-        two_negative_slides_in();        
+        two_negative_slides_in();     
+        two_negative_slides_in_larger();   
     }
 }
 
